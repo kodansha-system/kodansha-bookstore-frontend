@@ -1,0 +1,20 @@
+{
+  "Home": {
+    "Docs": {
+      "title": "Tài liệu",
+      "text": "Tìm thông tin chi tiết về các tính năng và API của Next.js."
+    },
+    "Learn": {
+      "title": "Học",
+      "text": "Tìm hiểu về Next.js qua một khóa học tương tác với các câu đố!"
+    },
+    "Templates": {
+      "title": "Mẫu",
+      "text": "Khám phá các mẫu khởi động cho Next.js."
+    },
+    "Deploy": {
+      "title": "Triển khai",
+      "text": "Triển khai ngay lập tức trang Next.js của bạn lên một URL có thể chia sẻ với Vercel."
+    }
+  }
+}
