@@ -15,6 +15,20 @@
     "Deploy": {
       "title": "Triển khai",
       "text": "Triển khai ngay lập tức trang Next.js của bạn lên một URL có thể chia sẻ với Vercel."
-    }
-  }
+    },
+    "Language": {
+      "changeLanguage": "Chuyển ngôn ngữ",
+      "english": "Tiếng Anh",
+      "vietnamese": "Việt Nam"
+    },
+    "Account": {
+      "myAcc": "Tài khoản",
+      "setting": "Cài đặt",
+      "logout": "Đăng xuất"
+    },
+    "findProduct": "Tìm kiếm sản phẩm"
+  },
+
+  "dashboard": "Trang chủ",
+  "orders": "Giỏ hàng"
 }

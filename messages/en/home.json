@@ -15,6 +15,20 @@
     "Deploy": {
       "title": "Deploy",
       "text": "Instantly deploy your Next.js site to a shareable URL with Vercel."
-    }
-  }
+    },
+    "Language": {
+      "changeLanguage": "Change language",
+      "english": "English",
+      "vietnamese": "Vietnamese"
+    },
+    "Account": {
+      "myAcc": "My Account",
+      "setting": "Settings",
+      "logout": "Logout"
+    },
+    "findProduct": "Search products"
+  },
+
+  "dashboard": "Dashboard",
+  "orders": "Cart"
 }

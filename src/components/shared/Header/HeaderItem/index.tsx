@@ -9,7 +9,7 @@ export function HeaderItem({ href, label }: { href: string; label: string }) {
 
   return (
     <Link
-      className="text-muted-foreground transition-colors hover:text-foreground data-[active=true]:text-foreground"
+      className="min-w-[80px] text-muted-foreground transition-colors hover:text-foreground data-[active=true]:text-foreground"
       data-active={isActive}
       href={href}
     >
