@@ -1,5 +1,7 @@
 "use client";
 
+import { useState } from "react";
+
 import Image from "next/image";
 
 import "swiper/css";
@@ -23,6 +25,8 @@ const images = [
 ];
 
 const BannerSlider = () => {
+  const [isSwiperReady, setIsSwiperReady] = useState(false);
+
   return (
     <div className="relative mx-auto w-[90%] py-10">
       <Swiper
@@ -45,10 +49,12 @@ const BannerSlider = () => {
         loop={true}
         modules={[EffectCoverflow, Navigation, Autoplay]}
         navigation={true}
+        onInit={() => setIsSwiperReady(true)}
         pagination={{ clickable: true }}
         slidesPerView={2}
         spaceBetween={-30}
         speed={1000}
+        style={{ visibility: isSwiperReady ? "visible" : "hidden" }}
       >
         {images.map((src, index) => (
           <SwiperSlide className="flex items-center justify-center" key={index}>
