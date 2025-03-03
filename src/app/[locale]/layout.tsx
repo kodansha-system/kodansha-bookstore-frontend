@@ -45,7 +45,9 @@ export default async function RootLayout({
               <TooltipProvider>
                 <Header />
 
-                {children}
+                <div className="min-h-[calc(100vh-110px)] bg-gray-50 py-5">
+                  {children}
+                </div>
 
                 <Footer />
               </TooltipProvider>
