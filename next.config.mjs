@@ -21,6 +21,11 @@ const nextConfig = {
         hostname: "salt.tikicdn.com",
         pathname: "/**",
       },
+      {
+        protocol: "https",
+        hostname: "cdn.haitrieu.com",
+        pathname: "/**",
+      },
     ],
   },
 };

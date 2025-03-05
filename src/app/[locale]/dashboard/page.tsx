@@ -122,14 +122,14 @@ function DashboardPage() {
       </div> */}
 
       {/* flash sales */}
-      <div className="mx-[80px] mt-3 rounded-lg bg-white p-5">
+      <div className="mx-[60px] mt-3 rounded-lg bg-white p-5">
         <div className="text-[18px] font-medium">Flash sales</div>
 
-        <div className="mx-[60px] mt-5 flex grow flex-wrap justify-between gap-3">
-          {[1, 2, 3, 4, 5].map((_, index) => (
+        <div className="mt-5 flex grow flex-wrap justify-center gap-1 lg:gap-3">
+          {[1, 2, 3, 4, 5, 6].map((_, index) => (
             <Link className="block" href="#" key={index}>
               <div className="rounded-lg border border-gray-200 bg-white p-3 shadow-sm transition-transform duration-1000 hover:shadow-lg">
-                <div className="relative size-[200px]">
+                <div className="relative size-[180px]">
                   <Image
                     alt="Sản phẩm"
                     className="rounded-md object-cover"
@@ -150,7 +150,7 @@ function DashboardPage() {
 
                   <div className="text-sm text-gray-500">Nguyễn Nhật Ánh</div>
 
-                  <div className="max-w-[200px] truncate text-base font-medium text-gray-900">
+                  <div className="max-w-[180px] truncate text-base font-medium text-gray-900">
                     Tôi thấy hoa vàng trên cỏ xanh
                   </div>
 
@@ -182,7 +182,7 @@ function DashboardPage() {
       </div>
 
       {/* bộ lọc danh sách sản phẩm  */}
-      <div className="mx-[80px] mt-3 rounded-lg bg-white p-5 pb-2">
+      <div className="mx-[60px] mt-3 rounded-lg bg-white p-5 pb-2">
         <div className="text-[18px] font-[500]">Tất cả sản phẩm</div>
 
         <div>
@@ -399,12 +399,12 @@ function DashboardPage() {
         </div>
       </div>
 
-      <div>
-        <div className="mx-[60px] mt-5 flex grow flex-wrap justify-center gap-3">
+      <div className="mx-[60px]">
+        <div className="mt-5 flex grow flex-wrap justify-center gap-5">
           {[1, 2, 3, 4, 5, 6, 8, 1, 1, 1, 1, 1, 1, 1, 1].map((_, index) => (
             <Link className="block" href="#" key={index}>
-              <div className="rounded-lg border border-gray-200 bg-white p-3 shadow-sm transition-transform duration-1000 hover:shadow-lg">
-                <div className="relative size-[236px]">
+              <div className="min-h-full rounded-lg border border-gray-200 bg-white p-3 shadow-sm transition-transform duration-1000 hover:shadow-lg">
+                <div className="relative size-[180px]">
                   <Image
                     alt="Sản phẩm"
                     className="rounded-md object-cover"
@@ -425,12 +425,12 @@ function DashboardPage() {
 
                   <div className="text-sm text-gray-500">Nguyễn Nhật Ánh</div>
 
-                  <div className="text-base font-medium text-gray-900">
+                  <div className="line-clamp-2 max-w-[180px] text-base font-medium text-gray-900">
                     Tôi thấy hoa vàng trên cỏ xanh
                   </div>
 
                   <div className="mt-1 flex items-center justify-between text-sm text-gray-500">
-                    <div className="flex items-center gap-x-2">
+                    <div className="flex items-center gap-x-2 text-xs">
                       <RatingStars rating={5} size={10} /> Đã bán 2000
                     </div>
 
