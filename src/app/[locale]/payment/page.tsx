@@ -123,7 +123,7 @@ const Page = () => {
               {[1, 2, 3]?.map((item, index) => {
                 return (
                   <div
-                    className="flex w-[550px] items-center gap-3 rounded-md border border-gray-200 p-2"
+                    className="flex w-[550px] items-center gap-3 rounded-md border border-gray-200 p-2 shadow-md"
                     key={index}
                   >
                     <Image
