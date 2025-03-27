@@ -7,6 +7,7 @@ import { getMessages } from "next-intl/server";
 
 import Footer from "@/components/shared/Footer";
 import Header from "@/components/shared/Header";
+import ToastProvider from "@/components/shared/ToastProvider";
 import { ThemeProvider } from "@/components/theme-provider";
 import { TooltipProvider } from "@/components/ui/tooltip";
 
@@ -42,6 +43,8 @@ export default async function RootLayout({
               disableTransitionOnChange
               enableSystem
             >
+              <ToastProvider />
+
               <TooltipProvider>
                 <Header />
 
