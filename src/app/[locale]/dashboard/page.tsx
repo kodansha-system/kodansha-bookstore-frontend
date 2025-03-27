@@ -26,6 +26,8 @@ import {
   Select as ShadcnSelect,
 } from "@/components/ui/select";
 
+import { useBooks } from "@/hooks/useBooks";
+
 const FormSchema = z.object({
   is_cheap: z.boolean().default(false).optional(),
   is_freeship_extra: z.boolean().default(false).optional(),
@@ -42,6 +44,8 @@ const NoOptionsMessage = () => {
 };
 
 function DashboardPage() {
+  const { data, isLoading, error } = useBooks({});
+
   const t = useTranslations("Home");
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
@@ -125,51 +129,67 @@ function DashboardPage() {
       <div className="mx-[60px] mt-3 rounded-lg bg-white p-5">
         <div className="text-[18px] font-medium">Flash sales</div>
 
-        <div className="mt-5 flex grow flex-wrap justify-center gap-1 lg:gap-3">
-          {[1, 2, 3, 4, 5, 6].map((_, index) => (
-            <Link className="block" href="#" key={index}>
-              <div className="rounded-lg border border-gray-200 bg-white p-3 shadow-sm transition-transform duration-1000 hover:shadow-lg">
-                <div className="relative size-[180px]">
-                  <Image
-                    alt="Sản phẩm"
-                    className="rounded-md object-cover"
-                    fill
-                    src="https://danviet.mediacdn.vn/296231569849192448/2023/8/26/sach-nna-ban-tieng-anh-16930541445461508724279.jpg"
-                  />
-                </div>
+        <div className="mt-5 flex flex-wrap items-stretch justify-center gap-1 lg:gap-3">
+          {data &&
+            data?.books?.map((item: any, index: number) => (
+              <div className="flex max-w-[228px] flex-1" key={index}>
+                <div className="flex h-full flex-col rounded-lg border border-gray-200 bg-white p-3 shadow-sm transition-transform duration-1000 hover:shadow-lg">
+                  <div className="relative size-[180px]">
+                    <Image
+                      alt="Sản phẩm"
+                      className="rounded-md object-cover"
+                      fill
+                      src={item?.images[0]}
+                    />
+                  </div>
 
-                <div className="mt-3 flex flex-col gap-2">
-                  {/* giá */}
-                  <div className="flex items-center gap-x-2 text-[20px] font-[500] text-red-500">
-                    <div>{new Intl.NumberFormat("vi-VN").format(100000)}đ</div>
+                  <div className="mt-3 flex flex-1 flex-col justify-between gap-2">
+                    <div className="flex flex-col gap-2">
+                      <div
+                        className={`flex items-center gap-x-2 text-[20px] font-[500] ${item?.discount === 0 ? "text-black" : "text-red-500"}`}
+                      >
+                        <div>
+                          {new Intl.NumberFormat("vi-VN").format(item?.price)}đ
+                        </div>
 
-                    <div className="flex items-center justify-center rounded-sm bg-gray-100 p-1 text-xs font-[400] text-black">
-                      -30%
+                        {item?.discount !== 0 && (
+                          <div className="flex items-center justify-center rounded-sm bg-gray-100 p-1 text-xs font-[400] text-black">
+                            -
+                            {(
+                              (item?.discount /
+                                (item?.price + item?.discount)) *
+                              100
+                            ).toFixed(0)}
+                            %
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="text-sm text-gray-500">
+                        {item?.authors[0]?.name}
+                      </div>
+
+                      <div className="line-clamp-2 max-w-[180px] text-base font-medium text-gray-900">
+                        {item?.name}
+                      </div>
                     </div>
-                  </div>
 
-                  <div className="text-sm text-gray-500">Nguyễn Nhật Ánh</div>
+                    <div className="mt-1 flex flex-col gap-y-1 text-sm">
+                      <div className="relative w-full">
+                        <Progress
+                          className="h-5 bg-red-200 [&>div]:bg-red-500"
+                          value={50}
+                        />
 
-                  <div className="max-w-[180px] truncate text-base font-medium text-gray-900">
-                    Tôi thấy hoa vàng trên cỏ xanh
-                  </div>
-
-                  <div className="mt-1 flex flex-col gap-y-1 text-sm">
-                    <div className="relative w-full">
-                      <Progress
-                        className="h-5 bg-red-200 [&>div]:bg-red-500"
-                        value={50}
-                      />
-
-                      <span className="absolute inset-0 flex items-center justify-center text-xs font-medium text-white">
-                        Đã bán {100} / {500}
-                      </span>
+                        <span className="absolute inset-0 flex items-center justify-center text-xs font-medium text-white">
+                          Đã bán {100} / {500}
+                        </span>
+                      </div>
                     </div>
                   </div>
                 </div>
               </div>
-            </Link>
-          ))}
+            ))}
         </div>
 
         <div className="mt-5 text-center">
@@ -401,48 +421,59 @@ function DashboardPage() {
 
       <div className="mx-[60px]">
         <div className="mt-5 flex grow flex-wrap justify-center gap-5">
-          {[1, 2, 3, 4, 5, 6, 8, 1, 1, 1, 1, 1, 1, 1, 1].map((_, index) => (
-            <Link className="block" href="#" key={index}>
-              <div className="min-h-full rounded-lg border border-gray-200 bg-white p-3 shadow-sm transition-transform duration-1000 hover:shadow-lg">
-                <div className="relative size-[180px]">
-                  <Image
-                    alt="Sản phẩm"
-                    className="rounded-md object-cover"
-                    fill
-                    src="https://danviet.mediacdn.vn/296231569849192448/2023/8/26/sach-nna-ban-tieng-anh-16930541445461508724279.jpg"
-                  />
-                </div>
-
-                <div className="mt-3 flex flex-col gap-2">
-                  {/* giá */}
-                  <div className="flex items-center gap-x-2 text-[20px] font-[500] text-red-500">
-                    <div>{new Intl.NumberFormat("vi-VN").format(100000)}đ</div>
-
-                    <div className="flex items-center justify-center rounded-sm bg-gray-100 p-1 text-xs font-[400] text-black">
-                      -30%
-                    </div>
-                  </div>
-
-                  <div className="text-sm text-gray-500">Nguyễn Nhật Ánh</div>
-
-                  <div className="line-clamp-2 max-w-[180px] text-base font-medium text-gray-900">
-                    Tôi thấy hoa vàng trên cỏ xanh
-                  </div>
-
-                  <div className="mt-1 flex items-center justify-between text-sm text-gray-500">
-                    <div className="flex items-center gap-x-2 text-xs">
-                      <RatingStars rating={5} size={10} /> Đã bán 2000
-                    </div>
-
-                    <ShoppingCart
-                      className="hover:scale-150 hover:text-blue-500"
-                      size={16}
+          {data &&
+            data?.books?.map((item: any, index: number) => (
+              <Link className="block" href={`/books/${item?.id}`} key={index}>
+                <div className="min-h-full rounded-lg border border-gray-200 bg-white p-3 shadow-sm transition-transform duration-1000 hover:shadow-lg">
+                  <div className="relative size-[180px]">
+                    <Image
+                      alt="Sản phẩm"
+                      className="rounded-md object-cover"
+                      fill
+                      src={item?.images[0]}
                     />
                   </div>
+
+                  <div className="mt-3 flex flex-col gap-2">
+                    {/* giá */}
+                    <div className="flex items-center gap-x-2 text-[20px] font-[500] text-red-500">
+                      <div>
+                        {new Intl.NumberFormat("vi-VN").format(item?.price)}đ
+                      </div>
+
+                      <div className="flex items-center justify-center rounded-sm bg-gray-100 p-1 text-xs font-[400] text-black">
+                        -
+                        {(
+                          (item?.discount / (item?.price + item?.discount)) *
+                          100
+                        ).toFixed(0)}
+                        %
+                      </div>
+                    </div>
+
+                    <div className="text-sm text-gray-500">
+                      {item?.authors[0]?.name}
+                    </div>
+
+                    <div className="line-clamp-2 max-w-[180px] text-base font-medium text-gray-900">
+                      {item?.name}
+                    </div>
+
+                    <div className="mt-1 flex items-center justify-between text-sm text-gray-500">
+                      <div className="flex items-center gap-x-2 text-xs">
+                        <RatingStars rating={5} size={10} /> Đã bán
+                        {item?.total_sold}
+                      </div>
+
+                      <ShoppingCart
+                        className="hover:scale-150 hover:text-blue-500"
+                        size={16}
+                      />
+                    </div>
+                  </div>
                 </div>
-              </div>
-            </Link>
-          ))}
+              </Link>
+            ))}
         </div>
 
         <div className="mt-5 text-center">
