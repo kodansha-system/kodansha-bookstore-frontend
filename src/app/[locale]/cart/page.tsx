@@ -1,11 +1,14 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 
 import Image from "next/image";
 import Link from "next/link";
 
+import { api } from "@/services/axios";
+import { useAuthStore } from "@/store/authStore";
+import { useCartStore } from "@/store/cartStore";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { PlusIcon, ShoppingCart, Trash2Icon } from "lucide-react";
 import { z } from "zod";
@@ -23,13 +26,20 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 
+import { useDetailCart } from "@/hooks/useCarts";
+
 const formSchema = z.object({
   info: z.object({
+    totalPrice: z.any(),
     benefits: z.array(
       z.object({
+        id: z.string(),
         name: z.string(),
         image: z.string(),
-        quantity: z.string(),
+        discount: z.any(),
+        price: z.any(),
+        total: z.any(),
+        quantity: z.any(),
         checked: z.boolean(),
       }),
     ),
@@ -37,45 +47,100 @@ const formSchema = z.object({
 });
 
 const CartPage = () => {
+  const user = useAuthStore((state: any) => state.user);
+  const { data: dataCart, refetch: refetchCart } = useDetailCart() || [];
+  const { setBookToBuy } = useCartStore();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const data = {
-    info: {
-      benefits: [
-        {
-          name: "Tôi thấy hoa vàng trên cỏ xanh",
-          image:
-            "https://danviet.mediacdn.vn/296231569849192448/2023/8/26/sach-nna-ban-tieng-anh-16930541445461508724279.jpg",
-          quantity: "1",
-          checked: false,
-        },
-        {
-          name: "Đắc Nhân Tâm",
-          image:
-            "https://danviet.mediacdn.vn/296231569849192448/2023/8/26/sach-nna-ban-tieng-anh-16930541445461508724279.jpg",
-
-          quantity: "2",
-          checked: false,
-        },
-      ],
-    },
-  };
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       info: {
-        benefits: data.info.benefits,
+        totalPrice: 0,
+        benefits: [],
       },
     },
   });
 
-  const { setValue, getValues } = form;
+  const { setValue, getValues, watch, control, handleSubmit } = form;
 
-  async function onSubmit(values: z.infer<typeof formSchema>) {
-    const selectedItems = values.info.benefits.filter((b) => b.checked);
+  const memoizedDataCart = useMemo(() => dataCart, [JSON.stringify(dataCart)]);
+  const onSubmit = useCallback(
+    async (values: z.infer<typeof formSchema>) => {
+      try {
+        setIsSubmitting(true);
+        const currentData = values.info.benefits?.map((item) => ({
+          book_id: item.id,
+          quantity: Number(item.quantity),
+        }));
 
-    console.log(selectedItems, "Dữ liệu đã chọn"); // ✅ Chỉ in ra mục được tick
-  }
+        await api.patch("/carts", { books: currentData });
+        refetchCart();
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setIsSubmitting(false);
+      }
+    },
+    [refetchCart],
+  );
+  const handleCheckedChange = useCallback(
+    (index: number, checked: boolean) => {
+      setValue(
+        "info.benefits",
+        getValues("info.benefits").map((item, i) =>
+          i === index ? { ...item, checked } : item,
+        ),
+      );
+    },
+    [setValue, getValues],
+  );
+
+  const handleChooseAllBooks = useCallback(() => {
+    setValue(
+      "info.benefits",
+      getValues("info.benefits").map((item, i) => {
+        return { ...item, checked: true };
+      }),
+    );
+  }, [setValue, getValues]);
+
+  const handleBuyBooks = () => {
+    const checkedBooks = getValues("info.benefits")?.filter(
+      (item) => item.checked,
+    );
+
+    setBookToBuy(checkedBooks);
+  };
+
+  const benefits = watch("info.benefits");
+  const total = useMemo(() => {
+    const price =
+      benefits?.reduce(
+        (sum, item) =>
+          item.checked
+            ? sum + Number(item.price + item.discount) * item.quantity
+            : sum,
+        0,
+      ) || 0;
+
+    const discount =
+      benefits?.reduce(
+        (sum, item) => (item.checked ? sum + Number(item.discount) : sum),
+        0,
+      ) || 0;
+
+    return {
+      price,
+      discount,
+    };
+  }, [benefits]);
+
+  useEffect(() => {
+    if (memoizedDataCart.length > 0) {
+      setValue("info.benefits", memoizedDataCart);
+    }
+  }, [memoizedDataCart, setValue]);
 
   return (
     <>
@@ -88,6 +153,22 @@ const CartPage = () => {
           <div className="min-w-[1000px] rounded-md">
             <Form {...form}>
               <form autoComplete="off" onSubmit={form.handleSubmit(onSubmit)}>
+                <div className="mb-3 flex gap-3">
+                  <Button
+                    className="w-[140px] border border-red-500 bg-white text-red-500 hover:bg-red-500 hover:text-white"
+                    onClick={handleChooseAllBooks}
+                  >
+                    Chọn mua tất cả
+                  </Button>
+
+                  <Button
+                    className="w-[150px] border border-blue-500 bg-blue-500 text-white hover:bg-blue-500"
+                    type="submit"
+                  >
+                    Cập nhật giỏ hàng
+                  </Button>
+                </div>
+
                 <div className="overflow-hidden text-base">
                   {/* Header */}
                   <div className="mb-3 grid grid-cols-[80px_100px_1fr_150px_100px_150px_50px] gap-3 rounded-md border bg-white p-3 text-left font-medium">
@@ -114,7 +195,7 @@ const CartPage = () => {
                         <FormItem>
                           <FormControl>
                             <>
-                              {getValues("info.benefits").map((b, index) => (
+                              {getValues("info.benefits")?.map((b, index) => (
                                 <div
                                   className="grid grid-cols-[80px_100px_1fr_150px_100px_150px_50px] items-center gap-3 rounded-md border bg-white p-3"
                                   key={index}
@@ -123,15 +204,12 @@ const CartPage = () => {
                                     checked={b.checked}
                                     className="data-[state=checked]:border-blue-500 data-[state=checked]:bg-blue-500"
                                     color="blue"
-                                    onCheckedChange={(checked) => {
-                                      const newBenefits = [
-                                        ...getValues("info.benefits"),
-                                      ];
-
-                                      newBenefits[index].checked =
-                                        checked as boolean;
-                                      setValue("info.benefits", newBenefits);
-                                    }}
+                                    onCheckedChange={(checked) =>
+                                      handleCheckedChange(
+                                        index,
+                                        checked as boolean,
+                                      )
+                                    }
                                   />
 
                                   <div>
@@ -149,7 +227,7 @@ const CartPage = () => {
                                   </div>
 
                                   <div className="font-medium text-blue-500">
-                                    100.000đ
+                                    {b.price.toLocaleString()}
                                   </div>
 
                                   <Input
@@ -168,7 +246,7 @@ const CartPage = () => {
                                   />
 
                                   <div className="font-medium text-blue-500">
-                                    100.000đ
+                                    {b.total.toLocaleString()}
                                   </div>
 
                                   <button
@@ -225,19 +303,22 @@ const CartPage = () => {
             <div className="flex justify-between">
               <div>Tổng tiền hàng: </div>
 
-              <div className="text-black">300.000đ</div>
+              <div className="text-black">{total?.price.toLocaleString()}đ</div>
             </div>
 
             <div className="flex justify-between">
               <div>Giảm giá trực tiếp: </div>
 
-              <div className="text-green-300">-100.000đ</div>
+              <div className="text-green-300">
+                {total.discount > 0 ? `-${total.discount.toLocaleString()}` : 0}
+                đ
+              </div>
             </div>
 
             <div className="flex justify-between">
               <div>Mã giảm giá từ Shelfly: </div>
 
-              <div className="text-green-300">-30.000đ</div>
+              <div className="text-green-300">0đ</div>
             </div>
 
             <div className="size-px w-[320px] border border-gray-200"></div>
@@ -245,13 +326,15 @@ const CartPage = () => {
             <div className="flex justify-between">
               <div>Tổng tiền hàng: </div>
 
-              <div className="text-[20px] font-bold text-red-500">170.000đ</div>
+              <div className="text-[20px] font-bold text-red-500">
+                {(total.price - total.discount).toLocaleString()}đ
+              </div>
             </div>
 
             <Button
               className="mt-5 w-full bg-red-500 hover:bg-red-400"
               disabled={isSubmitting}
-              type="submit"
+              onClick={handleBuyBooks}
             >
               Mua hàng
             </Button>
@@ -262,7 +345,7 @@ const CartPage = () => {
       <div className="mx-[60px] mb-5 rounded-md bg-white px-3 py-5">
         <div className="ml-[10px] text-[18px] font-medium">Gợi ý cho bạn</div>
 
-        <div className="mt-5 flex grow flex-wrap justify-center gap-3">
+        {/* <div className="mt-5 flex grow flex-wrap justify-center gap-3">
           {[1, 2, 3, 4, 5, 6, 8, 1, 1, 1, 1, 1, 1, 1, 1].map((_, index) => (
             <Link className="block" href="#" key={index}>
               <div className="rounded-lg border border-gray-200 bg-white p-3 shadow-sm transition-transform duration-1000 hover:shadow-lg">
@@ -304,7 +387,7 @@ const CartPage = () => {
               </div>
             </Link>
           ))}
-        </div>
+        </div> */}
 
         <div className="mt-5 text-center">
           <Link className="inline-block w-[200px]" href="#" passHref>
