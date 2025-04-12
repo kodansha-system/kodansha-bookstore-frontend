@@ -47,7 +47,6 @@ const formSchema = z.object({
 });
 
 const CartPage = () => {
-  const user = useAuthStore((state: any) => state.user);
   const { data: dataCart, refetch: refetchCart } = useDetailCart() || [];
   const { setBookToBuy } = useCartStore();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -65,6 +64,7 @@ const CartPage = () => {
   const { setValue, getValues, watch, control, handleSubmit } = form;
 
   const memoizedDataCart = useMemo(() => dataCart, [JSON.stringify(dataCart)]);
+
   const onSubmit = useCallback(
     async (values: z.infer<typeof formSchema>) => {
       try {
@@ -84,6 +84,7 @@ const CartPage = () => {
     },
     [refetchCart],
   );
+
   const handleCheckedChange = useCallback(
     (index: number, checked: boolean) => {
       setValue(
@@ -106,11 +107,15 @@ const CartPage = () => {
   }, [setValue, getValues]);
 
   const handleBuyBooks = () => {
-    const checkedBooks = getValues("info.benefits")?.filter(
-      (item) => item.checked,
-    );
+    try {
+      const checkedBooks = getValues("info.benefits")?.filter(
+        (item) => item.checked,
+      );
 
-    setBookToBuy(checkedBooks);
+      setBookToBuy(checkedBooks);
+    } catch (error) {
+      console.log(error, "error buy books");
+    }
   };
 
   const benefits = watch("info.benefits");

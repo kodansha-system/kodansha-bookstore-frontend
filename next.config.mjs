@@ -4,6 +4,15 @@ const withNextIntl = createNextIntlPlugin();
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  async rewrites() {
+    return [
+      {
+        source: "/vi/api/v2/:path*",
+        destination:
+          process.env.NEXT_PUBLIC_SHIPPING_BASE_URL + "/api/v2/:path*",
+      },
+    ];
+  },
   reactStrictMode: false,
   experimental: {
     serverActions: true,
@@ -28,6 +37,11 @@ const nextConfig = {
       {
         protocol: "https",
         hostname: "cdn.haitrieu.com",
+        pathname: "/**",
+      },
+      {
+        protocol: "http",
+        hostname: "res.cloudinary.com",
         pathname: "/**",
       },
     ],

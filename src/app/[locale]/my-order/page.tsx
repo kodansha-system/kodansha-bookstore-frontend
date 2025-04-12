@@ -1,26 +1,88 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 
-import Image from "next/image";
+import { useRouter } from "next/navigation";
 
-import { SearchIcon, Star } from "lucide-react";
+import { api } from "@/services/axios";
+import {
+  DATE_FORMAT,
+  OrderStatus,
+  OrderStatusText,
+} from "@/services/constants";
+import dayjs from "dayjs";
 
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
+import ProductCard from "./components/ProductCard";
+
+enum TabEnum {
+  ALL = "all",
+  IN_PROGRESS = "in_progress",
+  SHIPPING = "shipping",
+  DELIVERED = "delivered",
+  CANCELED = "canceled",
+}
 const tabs = [
-  { value: "all", label: "Tất cả đơn" },
-  { value: "pending", label: "Chờ thanh toán" },
-  { value: "processing", label: "Đang xử lý" },
-  { value: "shipping", label: "Đang vận chuyển" },
-  { value: "delivered", label: "Đã giao" },
-  { value: "canceled", label: "Đã huỷ" },
+  { value: TabEnum.ALL, label: "Tất cả đơn" },
+  { value: TabEnum.IN_PROGRESS, label: "Đang xử lý" },
+  { value: TabEnum.SHIPPING, label: "Đang vận chuyển" },
+  { value: TabEnum.DELIVERED, label: "Đã giao" },
+  { value: TabEnum.CANCELED, label: "Đã huỷ" },
 ];
 
 const Page = () => {
   const [activeTab, setActiveTab] = useState("all");
+
+  const [listOrder, setListOrder] = useState([]);
+  const router = useRouter();
+
+  const handleGetOrderStatus = () => {
+    switch (activeTab) {
+      case TabEnum.ALL:
+        return [];
+      case TabEnum.IN_PROGRESS:
+        return [OrderStatus.New, OrderStatus.WaitingPickup];
+      case TabEnum.SHIPPING:
+        return [
+          OrderStatus.PickingUp,
+          OrderStatus.PickedUp,
+          OrderStatus.Delivering,
+          OrderStatus.DeliveryFailed,
+          OrderStatus.Returning,
+          OrderStatus.Returned,
+          OrderStatus.Reconciled,
+          OrderStatus.CustomerReconciled,
+          OrderStatus.CodTransferred,
+          OrderStatus.WaitingCodPayment,
+          OrderStatus.Delay,
+          OrderStatus.PartiallyDelivered,
+          OrderStatus.Error,
+        ];
+      case TabEnum.DELIVERED:
+        return [OrderStatus.Completed];
+      case TabEnum.CANCELED:
+        return [OrderStatus.Cancelled];
+    }
+  };
+
+  const handleGetListOrder = async () => {
+    const res = await api.get("/orders/my-order", {
+      params: {
+        order_status: handleGetOrderStatus(),
+      },
+    });
+
+    setListOrder(res?.data);
+  };
+
+  const handleViewDetailOrder = (id: string) => {
+    router.push(`/my-order/${id}`);
+  };
+
+  useEffect(() => {
+    handleGetListOrder();
+  }, [activeTab]);
 
   return (
     <div>
@@ -34,7 +96,7 @@ const Page = () => {
           defaultValue="all"
           onValueChange={setActiveTab}
         >
-          <TabsList className="grid w-full grid-cols-6">
+          <TabsList className="grid w-full grid-cols-5">
             {tabs.map((tab) => (
               <TabsTrigger
                 className="text-sm"
@@ -46,7 +108,7 @@ const Page = () => {
             ))}
           </TabsList>
 
-          <form className="mt-2">
+          {/* <form className="mt-2">
             <div className="mx-auto mt-4 flex items-center justify-center gap-3">
               Tìm kiếm:
               <Input
@@ -57,125 +119,54 @@ const Page = () => {
                 Xác nhận
               </Button>
             </div>
-          </form>
+          </form> */}
 
           {tabs.map((tab) => (
             <TabsContent key={tab.value} value={tab.value}>
-              <div className="mx-auto mt-5 max-w-screen-lg rounded-md border p-5 px-6">
-                <div className="pb-3 text-[16px] font-medium">
-                  Ngày đặt hàng:{" "}
-                  <span className="text-blue-500">06/03/2024</span>
-                </div>
-
-                <div className="grid grid-cols-2 gap-5">
-                  {[1, 2, 3].map((item, index) => (
+              {listOrder &&
+                listOrder?.length > 0 &&
+                listOrder?.map((item: any, index) => {
+                  return (
                     <div
-                      className="flex items-center gap-3 rounded-md border border-gray-200 p-3 shadow-sm"
+                      className="mt-5 rounded-md border p-5 px-6"
                       key={index}
+                      onClick={() => handleViewDetailOrder(item?.id)}
                     >
-                      <Image
-                        alt=""
-                        className="h-[120px] w-[100px] rounded-md border object-cover p-1"
-                        height={200}
-                        src="https://danviet.mediacdn.vn/296231569849192448/2023/8/26/sach-nna-ban-tieng-anh-16930541445461508724279.jpg"
-                        width={100}
-                      />
-
-                      {/* Nội dung đơn hàng */}
-                      <div className="flex flex-col gap-y-2 text-base">
-                        <div className="line-clamp-2 font-medium text-gray-900">
-                          Tôi thấy hoa vàng trên cỏ xanh
+                      <div className="flex justify-between font-medium">
+                        <div className="pb-3 text-[16px]">
+                          Ngày đặt hàng:&nbsp;
+                          <span>
+                            {dayjs(item?.created_at).format(
+                              DATE_FORMAT.DAY_AND_TIME,
+                            )}
+                          </span>
                         </div>
 
-                        <div className="flex items-center gap-1 text-sm text-gray-500">
-                          {[...Array(5)].map((_, i) => (
-                            <Star
-                              color={i < 5 ? "#FFD700" : "#C0C0C0"}
-                              fill={i < 5 ? "#FFD700" : "#C0C0C0"}
-                              key={i}
-                              size={14}
-                            />
-                          ))}{" "}
-                          | Đã bán 2000
+                        <div>
+                          Trạng thái:&nbsp;
+                          <span className="text-blue-500">
+                            {OrderStatusText[item?.order_status as OrderStatus]}
+                          </span>
                         </div>
+                      </div>
 
-                        <div className="font-medium text-red-500">250.000đ</div>
+                      <div className="grid grid-cols-2 gap-5">
+                        {item?.books.map((item: any, index: number) => (
+                          <ProductCard item={item} key={index} />
+                        ))}
+                      </div>
 
-                        <div className="text-sm text-gray-500">Số lượng: 2</div>
+                      <div className="mt-4 flex justify-end border-t pt-3 text-sm">
+                        <div>
+                          Tổng đơn:&nbsp;
+                          <span className="text-base font-medium text-red-500">
+                            {item?.total_price.toLocaleString()}đ
+                          </span>
+                        </div>
                       </div>
                     </div>
-                  ))}
-                </div>
-
-                <div className="mt-4 flex justify-between border-t pt-3 text-sm">
-                  <div>
-                    Tổng đơn:{" "}
-                    <span className="text-base font-medium text-red-500">
-                      300.000đ
-                    </span>
-                  </div>
-
-                  <div>Trạng thái: Chờ xác nhận</div>
-                </div>
-              </div>
-
-              <div className="mx-auto mt-5 max-w-screen-lg rounded-md border p-5 px-6">
-                <div className="pb-3 text-[16px] font-medium">
-                  Ngày đặt hàng:{" "}
-                  <span className="text-blue-500">06/03/2024</span>
-                </div>
-
-                <div className="grid grid-cols-2 gap-5">
-                  {[1, 2, 3].map((item, index) => (
-                    <div
-                      className="flex items-center gap-3 rounded-md border border-gray-200 p-3 shadow-sm"
-                      key={index}
-                    >
-                      <Image
-                        alt=""
-                        className="h-[120px] w-[100px] rounded-md border object-cover p-1"
-                        height={200}
-                        src="https://danviet.mediacdn.vn/296231569849192448/2023/8/26/sach-nna-ban-tieng-anh-16930541445461508724279.jpg"
-                        width={100}
-                      />
-
-                      {/* Nội dung đơn hàng */}
-                      <div className="flex flex-col gap-y-2 text-base">
-                        <div className="line-clamp-2 font-medium text-gray-900">
-                          Tôi thấy hoa vàng trên cỏ xanh
-                        </div>
-
-                        <div className="flex items-center gap-1 text-sm text-gray-500">
-                          {[...Array(5)].map((_, i) => (
-                            <Star
-                              color={i < 5 ? "#FFD700" : "#C0C0C0"}
-                              fill={i < 5 ? "#FFD700" : "#C0C0C0"}
-                              key={i}
-                              size={14}
-                            />
-                          ))}{" "}
-                          | Đã bán 2000
-                        </div>
-
-                        <div className="font-medium text-red-500">250.000đ</div>
-
-                        <div className="text-sm text-gray-500">Số lượng: 2</div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-
-                <div className="mt-4 flex justify-between border-t pt-3 text-sm">
-                  <div>
-                    Tổng đơn:{" "}
-                    <span className="text-base font-medium text-red-500">
-                      300.000đ
-                    </span>
-                  </div>
-
-                  <div>Trạng thái: Chờ xác nhận</div>
-                </div>
-              </div>
+                  );
+                })}
             </TabsContent>
           ))}
         </Tabs>

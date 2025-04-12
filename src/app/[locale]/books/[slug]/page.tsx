@@ -156,7 +156,7 @@ const ProductDetailPage = ({ params }: ProductDetailPageProps) => {
                 ))}
 
                 <span className="text-sm text-gray-500">
-                  ({detailBook?.rating_count}) | Đã bán:{" "}
+                  ({detailBook?.rating_count}) | Đã bán:&nbsp;
                   {detailBook?.total_sold}
                 </span>
               </div>

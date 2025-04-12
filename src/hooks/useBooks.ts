@@ -13,9 +13,9 @@ const getDetailBooks = async (id: string) => {
   return response.data;
 };
 
-export const useBooks = (params) => {
+export const useBooks = (params: any) => {
   return useQuery({
-    queryKey: ["books"],
+    queryKey: ["books", params],
     queryFn: () => fetchBooks(params),
   });
 };

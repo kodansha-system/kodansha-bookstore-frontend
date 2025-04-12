@@ -28,5 +28,6 @@
   "files.trimTrailingWhitespace": true,
 
   // i18n
-  "i18n-ally.localesPaths": ["messages"]
+  "i18n-ally.localesPaths": ["messages"],
+  "cSpell.words": ["freeship", "paymethod"]
 }

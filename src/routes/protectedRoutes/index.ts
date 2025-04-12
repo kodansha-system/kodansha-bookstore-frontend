@@ -5,6 +5,6 @@ export async function getHeaderItems() {
 
   return [
     { label: messages["dashboard"], href: "/dashboard" },
-    { label: messages["orders"], href: "/carts" },
+    { label: messages["orders"], href: "/cart" },
   ];
 }

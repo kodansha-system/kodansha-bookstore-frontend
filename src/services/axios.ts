@@ -1,10 +1,10 @@
 import axios, { AxiosError } from "axios";
 import Cookies from "js-cookie";
 
-const apiUrl = process.env.API_BACKEND_URL;
+const apiUrl = process.env.NEXT_PUBLIC_API_BACKEND_URL;
 
 export const api = axios.create({
-  baseURL: "http://localhost:6969/api/v1",
+  baseURL: apiUrl,
   withCredentials: true,
 });
 
@@ -12,7 +12,7 @@ let isRefreshing = false;
 let refreshSubscribers: ((token: string) => void)[] = [];
 const refreshToken = async () => {
   try {
-    const response = await api.get(`http://localhost:6969/api/v1/auth/refresh`);
+    const response = await api.get(`/auth/refresh`);
     const newAccessToken = response.data.access_token;
 
     Cookies.set("access_token", newAccessToken);
@@ -46,7 +46,7 @@ api.interceptors.response.use(
     const originalRequest: any = error.config;
 
     if (!error.status && error.message === "Network Error") {
-      window.location.reload();
+      // window.location.reload();
 
       return;
     }
