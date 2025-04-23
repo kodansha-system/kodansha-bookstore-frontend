@@ -32,12 +32,21 @@ export const MappingCarrierName = {
   [CARRIERS.SHIP60]: "Ship60",
 };
 
-export const PAY_METHODS = {
-  HOUSE: "house",
-  MOMO: "momo",
-  VNPAY: "vnpay",
-  PAYOS: "payos",
+export enum PAY_METHODS {
+  ONLINE = "online",
+  OFFLINE = "offline",
+}
+
+export const PaymentMethodText: Record<PAY_METHODS, string> = {
+  [PAY_METHODS.OFFLINE]: "Thanh toán khi nhận hàng",
+  [PAY_METHODS.ONLINE]: "Thanh toán online",
 };
+
+export enum PaymentStatus {
+  PENDING = "pending",
+  SUCCESS = "success",
+  FAILED = "failed",
+}
 
 export const DATE_FORMAT = {
   DAY_AND_TIME: "DD/MM/YYYY HH:mm:ss",
@@ -84,3 +93,8 @@ export const OrderStatusText: Record<OrderStatus, string> = {
   [OrderStatus.PartiallyDelivered]: "Giao hàng một phần",
   [OrderStatus.Error]: "Đơn lỗi",
 };
+
+export enum DeliveryMethod {
+  STORE_PICKUP = "store_pickup",
+  HOME_DELIVERY = "home_delivery",
+}

@@ -9,6 +9,9 @@ import {
   DATE_FORMAT,
   OrderStatus,
   OrderStatusText,
+  PAY_METHODS,
+  PaymentMethodText,
+  PaymentStatus,
 } from "@/services/constants";
 import { useAuthStore } from "@/store/authStore";
 import dayjs from "dayjs";
@@ -19,6 +22,9 @@ import OrderHistory from "../components/OrderHistory";
 interface IOrder {
   user_id: {
     name: string;
+  };
+  shop_id: {
+    address: string;
   };
   address: {
     name: string;
@@ -51,13 +57,18 @@ interface IOrder {
   }[];
   order_status: number;
   vouchers: string[];
-  paymethod: string;
+  payment_method: string;
+  payment_status: PaymentStatus;
+  note: string;
+  delivery_address: any;
   created_by: any;
   id: string;
   is_deleted: boolean;
   deleted_at: any;
   created_at: string;
   updated_at: string;
+  shop_pickup_expire_at: string;
+  payment_expire_at: string;
 }
 
 interface DetailOrderPageProps {
@@ -70,16 +81,86 @@ const Page = ({ params }: DetailOrderPageProps) => {
   const [dataOrder, setDataOrder] = useState<IOrder>();
   const { user } = useAuthStore();
   const router = useRouter();
-
+  const [timeLeft, setTimeLeft] = useState<any>();
+  const [paymentTimeLeft, setPaymentTimeLeft] = useState<any>();
   const handleGetDetailOrder = async () => {
     const res = await api.get(`/orders/${params?.id}`);
 
     setDataOrder(res?.data);
   };
 
+  function getTimeLeft(deadline: string) {
+    const targetTime = new Date(deadline).getTime();
+    const now = new Date().getTime();
+    const diff = targetTime - now;
+
+    if (diff <= 0) {
+      return {
+        days: "00",
+        hours: "00",
+        minutes: "00",
+        seconds: "00",
+        isExpired: true,
+      };
+    }
+
+    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+    const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
+    const minutes = Math.floor((diff / (1000 * 60)) % 60);
+    const seconds = Math.floor((diff / 1000) % 60);
+
+    return {
+      days: String(days).padStart(2, "0"),
+      hours: String(hours).padStart(2, "0"),
+      minutes: String(minutes).padStart(2, "0"),
+      seconds: String(seconds).padStart(2, "0"),
+      isExpired: false,
+    };
+  }
+
   useEffect(() => {
     handleGetDetailOrder();
   }, []);
+
+  useEffect(() => {
+    if (
+      dataOrder &&
+      dataOrder.order_status !== OrderStatus.Cancelled &&
+      dataOrder.shop_pickup_expire_at
+    ) {
+      const interval = setInterval(() => {
+        const updatedTime = getTimeLeft(dataOrder.shop_pickup_expire_at);
+
+        setTimeLeft(updatedTime);
+
+        if (updatedTime.isExpired) {
+          clearInterval(interval);
+        }
+      }, 1000);
+
+      return () => clearInterval(interval);
+    }
+  }, [dataOrder]);
+
+  useEffect(() => {
+    if (
+      dataOrder &&
+      dataOrder.order_status !== OrderStatus.Cancelled &&
+      dataOrder.payment_expire_at
+    ) {
+      const interval = setInterval(() => {
+        const updatedTime = getTimeLeft(dataOrder.payment_expire_at);
+
+        setPaymentTimeLeft(updatedTime);
+
+        if (updatedTime.isExpired) {
+          clearInterval(interval);
+        }
+      }, 1000);
+
+      return () => clearInterval(interval);
+    }
+  }, [dataOrder]);
 
   return (
     <>
@@ -97,23 +178,64 @@ const Page = ({ params }: DetailOrderPageProps) => {
 
               <div>Địa chỉ: {dataOrder?.address?.detail}</div>
 
-              <div>Phương thức thanh toán: {dataOrder?.paymethod}</div>
+              <div>
+                Phương thức thanh toán:&nbsp;
+                {PaymentMethodText[dataOrder?.payment_method as PAY_METHODS]}
+              </div>
+
+              {dataOrder?.note && (
+                <div>
+                  Ghi chú:&nbsp;
+                  {dataOrder?.note}
+                </div>
+              )}
+
+              {dataOrder?.payment_status === PaymentStatus.PENDING &&
+                dataOrder?.order_status === OrderStatus.New &&
+                paymentTimeLeft && (
+                  <div>
+                    Thời gian còn lại để thanh toán:&nbsp;
+                    <span className="italic text-red-500">{`${paymentTimeLeft?.minutes} phút ${paymentTimeLeft?.seconds} giây`}</span>
+                  </div>
+                )}
             </div>
 
             <div className="flex w-full flex-col gap-3 rounded-md p-5 pb-[30px] text-[15px]">
-              <div>Vận chuyển bởi: {dataOrder?.carrier?.name}</div>
+              {dataOrder?.carrier?.name && (
+                <div>Vận chuyển bởi: {dataOrder?.carrier?.name}</div>
+              )}
 
               <div>
-                Tổng tiền:{" "}
+                Tổng tiền:&nbsp;
                 <span className="font-bold text-red-500">
                   {dataOrder?.total_price?.toLocaleString()}
                 </span>
               </div>
 
               <div>
-                Trạng thái:{" "}
+                Trạng thái:&nbsp;
                 {OrderStatusText[dataOrder?.order_status as OrderStatus]}
               </div>
+
+              {dataOrder?.order_status !== OrderStatus.Completed &&
+                dataOrder?.order_status !== OrderStatus.Cancelled &&
+                timeLeft && (
+                  <div className="">
+                    Thời gian còn lại để đến cửa hàng lấy sách:&nbsp;
+                    <span className="italic text-red-500">{`${timeLeft?.days} ngày ${timeLeft?.hours} giờ ${timeLeft?.minutes} phút ${timeLeft?.seconds} giây`}</span>
+                  </div>
+                )}
+
+              {dataOrder?.shop_id && (
+                <div>
+                  <div>
+                    Địa chỉ nhận hàng:&nbsp; {dataOrder?.shop_id?.address}&nbsp;
+                    <span className="cursor-pointer text-blue-500 underline">
+                      (Chỉ đường)
+                    </span>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
 

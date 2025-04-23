@@ -1,38 +1,36 @@
 "use client";
 
-import React, { useState } from "react";
+import React from "react";
+import { useForm } from "react-hook-form";
+import { toast } from "react-toastify";
 
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 import { api } from "@/services/axios";
+import { useCartStore } from "@/store/cartStore";
 import DOMPurify from "dompurify";
-// shadcn/ui Badge
-import {
-  BookOpen,
-  Headphones,
-  MapPin,
-  MinusCircleIcon,
-  PlusCircleIcon,
-  ShoppingCart,
-  Star,
-} from "lucide-react";
+import { Star } from "lucide-react";
 import styled from "styled-components";
-import type { Swiper as SwiperType } from "swiper";
 import "swiper/css";
 import "swiper/css/navigation";
 import "swiper/css/thumbs";
 
+import MinusIcon from "@/components/icons/MinusIcon";
+import PlusIcon from "@/components/icons/PlusIcon";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
 import { useDetailBook } from "@/hooks/useBooks";
 
+import { FindShopsHaveBook } from "../components/FindShopsHaveBook";
 import ProductSlider from "../components/ProductImages";
 
 const ProductContainer = styled.div`
-  padding: 40px;
+  padding: 20px 40px;
   background-color: #f9f9f9;
+  user-select: none;
   .swiper-container {
     width: 100%;
     max-width: 100%;
@@ -62,10 +60,12 @@ const ProductImage = styled.div`
   position: sticky;
   top: 80px;
   padding: 20px;
+  border: 1px solid #e5e7eb;
 
   @media (max-width: 1100px) {
     width: 100%;
     position: relative;
+    top: 0;
   }
 
   @media (max-width: 768px) {
@@ -96,26 +96,47 @@ interface ProductDetailPageProps {
 }
 
 const ProductDetailPage = ({ params }: ProductDetailPageProps) => {
-  const [quantity, setQuantity] = useState(1);
+  const form = useForm<{ quantity: number }>({
+    defaultValues: {
+      quantity: 1,
+    },
+  });
+  const { setBookToBuy } = useCartStore();
+  const router = useRouter();
 
-  const handleAddToCart = async () => {
-    const response = await api.post("/carts", {
-      books: [
-        {
-          book_id: detailBook?.id,
-          quantity,
-        },
-      ],
-    });
+  const handleAddToCart = async (data: any) => {
+    try {
+      await api.post("/carts", {
+        books: [
+          {
+            book_id: detailBook?.id,
+            quantity: Number(data.quantity),
+          },
+        ],
+      });
 
-    console.log(response);
+      toast.success("Thêm vào giỏ hàng thành công!");
+    } catch (err) {
+      toast.error("Có lỗi khi thêm vào giỏ hàng!");
+      console.log(err);
+    }
   };
 
-  const onChangeQuantityAddToCart = (
-    e: React.ChangeEvent<HTMLInputElement>,
-  ) => {
-    setQuantity(Number(e.target.value));
+  const handleBuyBook = () => {
+    setBookToBuy([
+      {
+        discount: detailBook?.discount,
+        id: detailBook?.id,
+        image: detailBook?.images[0],
+        name: detailBook?.name,
+        price: detailBook?.price,
+        quantity: 1,
+        total: detailBook?.price,
+      },
+    ]);
+    router.push("/payment");
   };
+
   const { listBookSameCategory, detailBook } = useDetailBook(params.slug);
 
   return (
@@ -126,7 +147,7 @@ const ProductDetailPage = ({ params }: ProductDetailPageProps) => {
         </ProductImage>
 
         <ProductContent>
-          <div className="rounded-lg bg-white p-5 text-sm">
+          <div className="rounded-lg border border-gray-200 bg-white p-5 text-sm">
             <div>
               Tác giả: &nbsp;
               <Link className="text-blue-500" href="#">
@@ -163,16 +184,21 @@ const ProductDetailPage = ({ params }: ProductDetailPageProps) => {
 
               <div className="my-3 flex items-center">
                 <div className="text-[28px] font-semibold text-red-500">
-                  {new Intl.NumberFormat("vi-VN").format(detailBook?.price)}đ
+                  {detailBook?.price
+                    ? new Intl.NumberFormat("vi-VN").format(detailBook?.price)
+                    : 0}
+                  đ
                 </div>
 
                 <div className="ml-2 rounded-sm bg-gray-200 px-2 py-1 text-xs text-black">
                   -
-                  {(
-                    (detailBook?.discount /
-                      (detailBook?.price + detailBook?.discount)) *
-                    100
-                  )?.toFixed(0)}
+                  {detailBook?.price
+                    ? (
+                        (detailBook?.discount /
+                          (detailBook?.price + detailBook?.discount)) *
+                        100
+                      )?.toFixed(0)
+                    : 0}
                   %
                 </div>
               </div>
@@ -180,67 +206,88 @@ const ProductDetailPage = ({ params }: ProductDetailPageProps) => {
               <div className="my-2 flex items-center gap-2">
                 Số lượng:
                 <div className="flex items-center gap-1">
-                  <MinusCircleIcon
-                    className="hover:cursor-pointer"
-                    color="gray"
-                    size={25}
-                  />
+                  <div
+                    className="cursor-pointer rounded-md border border-gray-400 p-1"
+                    onClick={() =>
+                      form.setValue(
+                        "quantity",
+                        Math.max(1, Number(form.watch("quantity")) - 1),
+                      )
+                    }
+                  >
+                    <MinusIcon />
+                  </div>
 
                   <Input
-                    className="h-[30px] w-[60px] border-2 border-gray-400 text-center text-sm"
-                    defaultValue="1"
-                    max="10"
-                    min="1"
-                    onChange={onChangeQuantityAddToCart}
+                    className="h-[33px] w-[60px] select-none border-gray-400 text-center text-[15px]"
+                    max={10}
+                    min={1}
+                    type="number"
+                    {...form.register("quantity", {
+                      min: 1,
+                      max: 10,
+                    })}
                   />
 
-                  <PlusCircleIcon
-                    className="hover:cursor-pointer"
-                    color="gray"
-                    size={25}
-                  />
+                  <div
+                    className="cursor-pointer rounded-md border border-gray-400 p-1"
+                    onClick={() =>
+                      form.setValue(
+                        "quantity",
+                        Math.min(10, Number(form.watch("quantity")) + 1),
+                      )
+                    }
+                  >
+                    <PlusIcon />
+                  </div>
                 </div>
+                {Number(form.watch("quantity")) < 1 ||
+                Number(form.watch("quantity") > 10) ? (
+                  <div className="text-red-400">Số lượng không hợp lệ</div>
+                ) : (
+                  ""
+                )}
               </div>
 
               <div className="my-5 flex gap-2">
                 <Button
-                  className="bg-blue-500 hover:bg-blue-400"
-                  onClick={handleAddToCart}
+                  className="select-none bg-blue-500 hover:bg-blue-400"
+                  onClick={form.handleSubmit(handleAddToCart)}
                 >
                   Thêm vào giỏ hàng
                 </Button>
 
-                <Button variant="destructive">Mua Ngay</Button>
+                <Button
+                  className="select-none"
+                  onClick={handleBuyBook}
+                  variant="destructive"
+                >
+                  Mua Ngay
+                </Button>
               </div>
 
-              <div className="flex gap-2">
-                {/* Đọc thử */}
+              {/* <div className="flex gap-2">
                 <button className="flex w-[160px] items-center gap-2 rounded-md border bg-blue-100 px-4 py-2 text-blue-800 transition hover:bg-blue-400 hover:text-white">
                   <BookOpen className="text-blue-700" size={20} />
                   Đọc thử
                 </button>
 
-                {/* Mua ebook */}
                 <button className="flex w-[160px] items-center gap-2 rounded-md border bg-green-100 px-4 py-2 text-green-800 transition hover:bg-green-400 hover:text-white">
                   <ShoppingCart className="text-green-700" size={20} />
                   Mua ebook
                 </button>
 
-                {/* Nghe sách nói */}
                 <button className="flex w-[160px] items-center gap-2 rounded-md border bg-orange-100 px-4 py-2 text-orange-800 transition hover:bg-orange-400 hover:text-white">
                   <Headphones className="text-orange-700" size={20} />
                   Nghe sách nói
                 </button>
-              </div>
+              </div> */}
             </div>
 
-            <div className="text-medium mt-5 flex cursor-pointer items-end text-gray-800">
-              <MapPin className="text-red-600" size={20} />
-              Tìm cửa hàng đang có sách
-            </div>
+            <FindShopsHaveBook book_id={detailBook?.id} />
           </div>
 
-          <div className="rounded-lg bg-white p-5">
+          <div className="rounded-lg border border-gray-200 bg-white p-5">
             <div className="font-medium">Thông tin chi tiết</div>
 
             <div className="text-sm text-gray-500">
@@ -276,7 +323,7 @@ const ProductDetailPage = ({ params }: ProductDetailPageProps) => {
             </div>
           </div>
 
-          <div className="rounded-lg bg-white p-5">
+          <div className="rounded-lg border border-gray-200 bg-white p-5">
             <div className="mb-2 text-base font-medium">Mô tả sản phẩm</div>
 
             <div
@@ -287,7 +334,7 @@ const ProductDetailPage = ({ params }: ProductDetailPageProps) => {
             ></div>
           </div>
 
-          <div className="rounded-lg bg-white p-5">
+          <div className="rounded-lg border border-gray-200 bg-white p-5">
             <div className="mb-3 text-base font-medium">Đánh giá sản phẩm</div>
 
             <div className="text-[25px] font-bold">
@@ -350,7 +397,7 @@ const ProductDetailPage = ({ params }: ProductDetailPageProps) => {
               ))}
             </div>
 
-            <div className="mt-3 flex flex-col gap-3">
+            <div className="mt-3 flex flex-col gap-3 text-sm">
               {feedback.map((item) => (
                 <div
                   className="rounded-md border border-gray-200 p-3"

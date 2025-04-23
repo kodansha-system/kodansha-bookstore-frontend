@@ -13,6 +13,8 @@ const DiscountSelector = ({
   setSortedProductVouchers,
   setSelectedFreeshipVoucher,
   setSelectedProductVoucher,
+  selectedShopId,
+  shippingOptions,
 }: any) => {
   const { watch, setValue } = form;
 
@@ -74,13 +76,13 @@ const DiscountSelector = ({
     setSortedProductVouchers(productVouchers);
 
     if (freeshipVouchers?.[0]) {
-      setValue("freeshipVoucher", freeshipVouchers[0].id);
-      setSelectedFreeshipVoucher(freeshipVouchers[0]);
+      // setValue("freeshipVoucher", freeshipVouchers[0].id);
+      // setSelectedFreeshipVoucher(freeshipVouchers[0]);
     }
 
     if (productVouchers?.[0]) {
       setValue("productVoucher", productVouchers[0].id);
-      setSelectedProductVoucher(productVouchers[0]);
+      // setSelectedProductVoucher(productVouchers[0]);
     }
   };
 
@@ -88,11 +90,12 @@ const DiscountSelector = ({
     handleGetListVoucher();
   }, [total.price]);
 
-  // Khi user chọn lại freeship voucher
   useEffect(() => {
     const selected = sortedFreeshipVouchers.find(
       (v: any) => v.id === selectedFreeship,
     );
+
+    console.log(selected);
 
     if (selected) {
       setSelectedFreeshipVoucher(selected);
@@ -109,6 +112,10 @@ const DiscountSelector = ({
     }
   }, [selectedProductVoucher, sortedProductVouchers]);
 
+  useEffect(() => {
+    console.log(shippingOptions, sortedFreeshipVouchers, sortedProductVouchers);
+  }, [shippingOptions, sortedFreeshipVouchers, sortedProductVouchers]);
+
   return (
     <div className="my-3 rounded-md border bg-white p-4 text-sm text-gray-500">
       <div>Mã giảm giá</div>
@@ -117,64 +124,66 @@ const DiscountSelector = ({
         sortedProductVouchers &&
         sortedFreeshipVouchers?.length > 0 && (
           <div className="my-3 rounded-md bg-white text-sm text-gray-700">
-            <div className="mb-4">
-              <div className="mb-2 text-sm font-medium text-blue-600">
-                Freeship
-              </div>
+            {!selectedShopId && shippingOptions?.length > 0 && (
+              <div className="mb-4">
+                <div className="mb-2 text-sm font-medium text-blue-600">
+                  Freeship
+                </div>
 
-              <div className="space-y-3">
-                {(showMoreFreeship
-                  ? sortedFreeshipVouchers
-                  : sortedFreeshipVouchers.slice(0, 1)
-                ).map((voucher: any) => (
-                  <label
-                    className={`flex cursor-pointer items-start gap-3 rounded-md border p-3 transition-all hover:shadow-sm ${
-                      selectedFreeship === voucher.id
-                        ? "border-green-500 bg-green-50"
-                        : "border-gray-200"
-                    }`}
-                    key={voucher.id}
+                <div className="space-y-3">
+                  {(showMoreFreeship
+                    ? sortedFreeshipVouchers
+                    : sortedFreeshipVouchers.slice(0, 1)
+                  ).map((voucher: any) => (
+                    <label
+                      className={`flex cursor-pointer items-start gap-3 rounded-md border p-3 transition-all hover:shadow-sm ${
+                        selectedFreeship === voucher.id
+                          ? "border-green-500 bg-green-50"
+                          : "border-gray-200"
+                      }`}
+                      key={voucher.id}
+                    >
+                      <input
+                        type="radio"
+                        value={voucher.id}
+                        {...form.register("freeshipVoucher")}
+                        className="mt-1 bg-white accent-[green]"
+                      />
+
+                      <div>
+                        <p className="font-medium">{voucher?.description}</p>
+
+                        <p className="text-sm text-gray-500">
+                          Đơn tối thiểu:&nbsp;
+                          {voucher?.min_order_total_price?.toLocaleString()}đ
+                        </p>
+
+                        <p className="text-sm text-gray-400">
+                          Thời gian:&nbsp;
+                          {new Date(voucher?.start_time)?.toLocaleDateString(
+                            "vi-VN",
+                          )}
+                          &nbsp;đến&nbsp;
+                          {new Date(voucher?.end_time)?.toLocaleDateString(
+                            "vi-VN",
+                          )}
+                        </p>
+                      </div>
+                    </label>
+                  ))}
+                </div>
+
+                {sortedFreeshipVouchers.length > 1 && (
+                  <button
+                    className="mt-2 text-sm font-medium text-blue-600 hover:underline"
+                    onClick={handleShowMoreFreeship}
+                    type="button"
                   >
-                    <input
-                      type="radio"
-                      value={voucher.id}
-                      {...form.register("freeshipVoucher")}
-                      className="mt-1 bg-white accent-[green]"
-                    />
-
-                    <div>
-                      <p className="font-medium">{voucher?.description}</p>
-
-                      <p className="text-sm text-gray-500">
-                        Đơn tối thiểu:&nbsp;
-                        {voucher?.min_order_total_price?.toLocaleString()}đ
-                      </p>
-
-                      <p className="text-sm text-gray-400">
-                        Thời gian:&nbsp;
-                        {new Date(voucher?.start_time)?.toLocaleDateString(
-                          "vi-VN",
-                        )}
-                        &nbsp;đến&nbsp;
-                        {new Date(voucher?.end_time)?.toLocaleDateString(
-                          "vi-VN",
-                        )}
-                      </p>
-                    </div>
-                  </label>
-                ))}
+                    {showMoreFreeship ? "Ẩn bớt" : "Xem thêm"}
+                  </button>
+                )}
               </div>
-
-              {sortedFreeshipVouchers.length > 1 && (
-                <button
-                  className="mt-2 text-sm font-medium text-blue-600 hover:underline"
-                  onClick={handleShowMoreFreeship}
-                  type="button"
-                >
-                  {showMoreFreeship ? "Ẩn bớt" : "Xem thêm"}
-                </button>
-              )}
-            </div>
+            )}
 
             <div>
               <div className="mb-2 text-sm font-medium text-pink-600">
@@ -234,6 +243,13 @@ const DiscountSelector = ({
                 </button>
               )}
             </div>
+          </div>
+        )}
+
+      {sortedFreeshipVouchers?.length === 0 &&
+        sortedProductVouchers?.length === 0 && (
+          <div className="italic text-black">
+            Hãy mua nhiều hơn để được áp mã giảm giá nhé!
           </div>
         )}
     </div>

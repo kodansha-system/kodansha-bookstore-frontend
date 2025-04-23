@@ -1,14 +1,18 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import Select from "react-select";
+import { toast } from "react-toastify";
 import { ReactTyped } from "react-typed";
 
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 import { useTranslations } from "next-intl";
 
+import { api } from "@/services/axios";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { MapPin, ShoppingCart } from "lucide-react";
 import { z } from "zod";
@@ -45,6 +49,9 @@ const NoOptionsMessage = () => {
 
 function DashboardPage() {
   const { data, isLoading, error } = useBooks({});
+  const [listCategories, setListCategories] = useState([]);
+  const [listAuthors, setListAuthors] = useState([]);
+  const router = useRouter();
 
   const t = useTranslations("Home");
   const form = useForm<z.infer<typeof FormSchema>>({
@@ -66,6 +73,45 @@ function DashboardPage() {
     { value: "strawberry", label: "Strawberry" },
     { value: "vanilla", label: "Vanilla" },
   ];
+
+  const handleGetListCategories = async () => {
+    const res = await api.get("/categories");
+    const res2 = await api.get("/authors");
+
+    setListCategories(
+      res?.data?.categories?.map((item: any) => {
+        return { value: item.id, label: item.name };
+      }),
+    );
+
+    setListAuthors(
+      res2?.data?.authors?.map((item: any) => {
+        return { value: item.id, label: item.name };
+      }),
+    );
+  };
+
+  const handleAddToCart = async (id: string) => {
+    try {
+      await api.post("/carts", {
+        books: [
+          {
+            book_id: id,
+            quantity: 1,
+          },
+        ],
+      });
+
+      toast.success("Thêm vào giỏ hàng thành công!");
+    } catch (err) {
+      toast.error("Có lỗi khi thêm vào giỏ hàng!");
+      console.log(err);
+    }
+  };
+
+  useEffect(() => {
+    handleGetListCategories();
+  }, []);
 
   return (
     <div className="flex w-full flex-col bg-gray-50 pb-5">
@@ -131,7 +177,7 @@ function DashboardPage() {
 
         <div className="mt-5 flex flex-wrap items-stretch justify-center gap-1 lg:gap-3">
           {data &&
-            data?.books?.map((item: any, index: number) => (
+            data?.books?.splice(0, 6)?.map((item: any, index: number) => (
               <div className="flex max-w-[228px] flex-1" key={index}>
                 <div className="flex h-full flex-col rounded-lg border border-gray-200 bg-white p-3 shadow-sm transition-transform duration-1000 hover:shadow-lg">
                   <div className="relative size-[180px]">
@@ -225,7 +271,7 @@ function DashboardPage() {
                               selected.map((option) => option.value),
                             )
                           }
-                          options={sortOptions}
+                          options={listCategories}
                           placeholder="Chọn danh mục"
                           styles={{
                             noOptionsMessage: (base) => ({
@@ -265,7 +311,7 @@ function DashboardPage() {
                               selected.map((option) => option.value),
                             )
                           }
-                          options={sortOptions}
+                          options={listAuthors}
                           placeholder="Chọn tác giả"
                           styles={{
                             noOptionsMessage: (base) => ({
@@ -423,13 +469,14 @@ function DashboardPage() {
         <div className="mt-5 flex grow flex-wrap justify-center gap-5">
           {data &&
             data?.books?.map((item: any, index: number) => (
-              <Link className="block" href={`/books/${item?.id}`} key={index}>
+              <div className="block" key={index}>
                 <div className="min-h-full rounded-lg border border-gray-200 bg-white p-3 shadow-sm transition-transform duration-1000 hover:shadow-lg">
                   <div className="relative size-[180px]">
                     <Image
                       alt="Sản phẩm"
                       className="rounded-md object-cover"
                       fill
+                      onClick={() => router.push(`/books/${item?.id}`)}
                       src={item?.images[0]}
                     />
                   </div>
@@ -451,7 +498,10 @@ function DashboardPage() {
                       </div>
                     </div>
 
-                    <div className="text-sm text-gray-500">
+                    <div
+                      className="text-sm text-gray-500"
+                      onClick={() => router.push(`/books/${item?.id}`)}
+                    >
                       {item?.authors[0]?.name}
                     </div>
 
@@ -461,18 +511,19 @@ function DashboardPage() {
 
                     <div className="mt-1 flex items-center justify-between text-sm text-gray-500">
                       <div className="flex items-center gap-x-2 text-xs">
-                        <RatingStars rating={5} size={10} /> Đã bán
+                        <RatingStars rating={5} size={10} /> Đã bán&nbsp;
                         {item?.total_sold}
                       </div>
 
                       <ShoppingCart
-                        className="hover:scale-150 hover:text-blue-500"
+                        className="cursor-pointer hover:scale-150 hover:text-blue-500"
+                        onClick={() => handleAddToCart(item.id)}
                         size={16}
                       />
                     </div>
                   </div>
                 </div>
-              </Link>
+              </div>
             ))}
         </div>
 

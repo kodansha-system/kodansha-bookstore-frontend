@@ -41,6 +41,7 @@
     "http-proxy-middleware": "^3.0.3",
     "js-cookie": "^3.0.5",
     "lucide-react": "^0.390.0",
+    "mapbox-gl": "^3.11.0",
     "next": "14.2.3",
     "next-intl": "^3.14.1",
     "next-themes": "^0.3.0",

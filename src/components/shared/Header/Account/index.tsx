@@ -45,6 +45,7 @@ const Account = () => {
     if (res && res.statusCode === 201) {
       toast.success("Đăng nhập thành công");
       setUser(res.data.user);
+      setOpen(false);
     } else {
       toast.error("Email/mật khẩu không khớp");
     }

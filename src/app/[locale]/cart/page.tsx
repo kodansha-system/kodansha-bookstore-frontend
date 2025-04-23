@@ -1,19 +1,21 @@
 "use client";
 
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { useForm } from "react-hook-form";
+import { useFieldArray, useForm } from "react-hook-form";
+import { toast } from "react-toastify";
 
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 import { api } from "@/services/axios";
-import { useAuthStore } from "@/store/authStore";
 import { useCartStore } from "@/store/cartStore";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { PlusIcon, ShoppingCart, Trash2Icon } from "lucide-react";
+import { DeleteIcon, Trash2Icon } from "lucide-react";
 import { z } from "zod";
 
-import RatingStars from "@/components/shared/RatingStar";
+import MinusIcon from "@/components/icons/MinusIcon";
+import PlusIcon from "@/components/icons/PlusIcon";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -21,7 +23,6 @@ import {
   FormControl,
   FormField,
   FormItem,
-  FormLabel,
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
@@ -29,39 +30,46 @@ import { Input } from "@/components/ui/input";
 import { useDetailCart } from "@/hooks/useCarts";
 
 const formSchema = z.object({
-  info: z.object({
-    totalPrice: z.any(),
-    benefits: z.array(
-      z.object({
-        id: z.string(),
-        name: z.string(),
-        image: z.string(),
-        discount: z.any(),
-        price: z.any(),
-        total: z.any(),
-        quantity: z.any(),
-        checked: z.boolean(),
-      }),
-    ),
-  }),
+  totalPrice: z.any(),
+  cartItems: z.array(
+    z.object({
+      id: z.string(),
+      name: z.string(),
+      image: z.string(),
+      discount: z.any(),
+      price: z.any(),
+      total: z.any(),
+      quantity: z.preprocess(
+        (val) => Number(val),
+        z
+          .number({ required_error: "Bắt buộc nhập số lượng" })
+          .min(1, "Tối thiểu 1")
+          .max(10, "Tối đa 10"),
+      ),
+      checked: z.boolean(),
+    }),
+  ),
 });
-
 const CartPage = () => {
   const { data: dataCart, refetch: refetchCart } = useDetailCart() || [];
   const { setBookToBuy } = useCartStore();
   const [isSubmitting, setIsSubmitting] = useState(false);
-
+  const router = useRouter();
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
+    mode: "onBlur",
     defaultValues: {
-      info: {
-        totalPrice: 0,
-        benefits: [],
-      },
+      totalPrice: 0,
+      cartItems: [],
     },
   });
+  const { setValue, getValues, watch, control, trigger } = form;
+  const { fields, append, remove } = useFieldArray({
+    control,
+    name: "cartItems",
+  });
 
-  const { setValue, getValues, watch, control, handleSubmit } = form;
+  const cartItems = watch("cartItems");
 
   const memoizedDataCart = useMemo(() => dataCart, [JSON.stringify(dataCart)]);
 
@@ -69,13 +77,14 @@ const CartPage = () => {
     async (values: z.infer<typeof formSchema>) => {
       try {
         setIsSubmitting(true);
-        const currentData = values.info.benefits?.map((item) => ({
+        const currentData = values.cartItems?.map((item) => ({
           book_id: item.id,
           quantity: Number(item.quantity),
         }));
 
         await api.patch("/carts", { books: currentData });
         refetchCart();
+        toast.success("Cập nhật giỏ hàng thành công");
       } catch (err) {
         console.error(err);
       } finally {
@@ -88,8 +97,8 @@ const CartPage = () => {
   const handleCheckedChange = useCallback(
     (index: number, checked: boolean) => {
       setValue(
-        "info.benefits",
-        getValues("info.benefits").map((item, i) =>
+        "cartItems",
+        getValues("cartItems").map((item, i) =>
           i === index ? { ...item, checked } : item,
         ),
       );
@@ -98,40 +107,54 @@ const CartPage = () => {
   );
 
   const handleChooseAllBooks = useCallback(() => {
-    setValue(
-      "info.benefits",
-      getValues("info.benefits").map((item, i) => {
-        return { ...item, checked: true };
-      }),
-    );
+    const current = getValues("cartItems");
+    const isAllChecked = current.every((item) => item.checked);
+    const updated = current.map((item) => ({
+      ...item,
+      checked: !isAllChecked,
+    }));
+
+    setValue("cartItems", updated);
   }, [setValue, getValues]);
 
   const handleBuyBooks = () => {
     try {
-      const checkedBooks = getValues("info.benefits")?.filter(
+      const checkedBooks = getValues("cartItems")?.filter(
         (item) => item.checked,
       );
 
-      setBookToBuy(checkedBooks);
+      if (checkedBooks.length > 0) {
+        setBookToBuy(checkedBooks);
+        router.push("/payment");
+      }
     } catch (error) {
       console.log(error, "error buy books");
     }
   };
 
-  const benefits = watch("info.benefits");
+  const handleQuantityBlur = (index: number) => {
+    const current = cartItems?.[index];
+
+    if (!current) return;
+    const quantity = Number(current.quantity || 0);
+    const price = Number(current.price || 0);
+    const newTotal = quantity * price;
+
+    setValue(`cartItems.${index}.total`, Number(newTotal));
+  };
   const total = useMemo(() => {
     const price =
-      benefits?.reduce(
+      cartItems?.reduce(
         (sum, item) =>
           item.checked
             ? sum + Number(item.price + item.discount) * item.quantity
             : sum,
         0,
       ) || 0;
-
     const discount =
-      benefits?.reduce(
-        (sum, item) => (item.checked ? sum + Number(item.discount) : sum),
+      cartItems?.reduce(
+        (sum, item) =>
+          item.checked ? sum + Number(item.discount) * item.quantity : sum,
         0,
       ) || 0;
 
@@ -139,13 +162,27 @@ const CartPage = () => {
       price,
       discount,
     };
-  }, [benefits]);
+  }, [cartItems]);
+
+  const handleViewDetailBook = (id: string) => {
+    router.push(`/books/${id}`);
+  };
 
   useEffect(() => {
     if (memoizedDataCart.length > 0) {
-      setValue("info.benefits", memoizedDataCart);
+      const currentChecked = getValues("cartItems") || [];
+      const updated = memoizedDataCart.map((item: any, index: number) => ({
+        ...item,
+        checked: currentChecked[index]?.checked || false,
+      }));
+
+      setValue("cartItems", updated);
     }
-  }, [memoizedDataCart, setValue]);
+  }, [memoizedDataCart]);
+
+  useEffect(() => {
+    console.log(form.formState.errors);
+  }, [form.formState.errors]);
 
   return (
     <>
@@ -153,30 +190,29 @@ const CartPage = () => {
         Giỏ hàng
       </div>
 
-      <div className="mx-[60px] flex flex-wrap gap-3 bg-gray-50 py-5 pt-0">
+      <div className="mx-[60px] flex select-none flex-wrap gap-3 bg-gray-50 py-5 pt-0">
         <div className="flex w-[1000px] gap-x-3 overflow-x-auto bg-gray-50 py-5 pt-0">
           <div className="min-w-[1000px] rounded-md">
             <Form {...form}>
               <form autoComplete="off" onSubmit={form.handleSubmit(onSubmit)}>
                 <div className="mb-3 flex gap-3">
-                  <Button
-                    className="w-[140px] border border-red-500 bg-white text-red-500 hover:bg-red-500 hover:text-white"
+                  <div
+                    className="flex w-[140px] cursor-pointer items-center justify-center rounded-md border border-red-500 bg-white text-sm font-medium text-red-500 hover:bg-red-500 hover:text-white"
                     onClick={handleChooseAllBooks}
                   >
                     Chọn mua tất cả
-                  </Button>
+                  </div>
 
                   <Button
                     className="w-[150px] border border-blue-500 bg-blue-500 text-white hover:bg-blue-500"
-                    type="submit"
+                    onClick={form.handleSubmit(onSubmit)}
                   >
                     Cập nhật giỏ hàng
                   </Button>
                 </div>
 
                 <div className="overflow-hidden text-base">
-                  {/* Header */}
-                  <div className="mb-3 grid grid-cols-[80px_100px_1fr_150px_100px_150px_50px] gap-3 rounded-md border bg-white p-3 text-left font-medium">
+                  <div className="mb-3 grid grid-cols-[80px_100px_1fr_100px_150px_150px_50px] gap-3 rounded-md border bg-white p-3 text-left font-medium">
                     <div>Chọn</div>
 
                     <div>Ảnh</div>
@@ -192,93 +228,130 @@ const CartPage = () => {
                     <div>Xóa</div>
                   </div>
 
-                  <div>
-                    <FormField
-                      control={form.control}
-                      name="info.benefits"
-                      render={() => (
-                        <FormItem>
-                          <FormControl>
-                            <>
-                              {getValues("info.benefits")?.map((b, index) => (
-                                <div
-                                  className="grid grid-cols-[80px_100px_1fr_150px_100px_150px_50px] items-center gap-3 rounded-md border bg-white p-3"
-                                  key={index}
-                                >
-                                  <Checkbox
-                                    checked={b.checked}
-                                    className="data-[state=checked]:border-blue-500 data-[state=checked]:bg-blue-500"
-                                    color="blue"
-                                    onCheckedChange={(checked) =>
-                                      handleCheckedChange(
-                                        index,
-                                        checked as boolean,
-                                      )
-                                    }
-                                  />
+                  <div className="flex flex-col gap-2">
+                    {fields.map((field, index) => {
+                      const watchedItem = cartItems?.[index];
 
-                                  <div>
-                                    <Image
-                                      alt=""
-                                      className="h-[100px] rounded-md object-cover"
-                                      height={40}
-                                      src={b.image}
-                                      width={80}
-                                    />
-                                  </div>
+                      return (
+                        <div
+                          className="grid grid-cols-[80px_100px_1fr_100px_150px_150px_50px] items-center gap-3 rounded-md border bg-white p-3"
+                          key={field.id}
+                        >
+                          <Checkbox
+                            checked={watchedItem.checked}
+                            className="data-[state=checked]:border-blue-500 data-[state=checked]:bg-blue-500"
+                            color="blue"
+                            onCheckedChange={(checked) =>
+                              handleCheckedChange(index, checked as boolean)
+                            }
+                          />
 
-                                  <div className="overflow-hidden whitespace-normal break-words">
-                                    {b.name}
-                                  </div>
+                          <div
+                            onClick={() => handleViewDetailBook(watchedItem.id)}
+                          >
+                            <Image
+                              alt=""
+                              className="h-[100px] cursor-pointer rounded-md object-cover"
+                              height={40}
+                              src={field.image}
+                              width={80}
+                            />
+                          </div>
 
-                                  <div className="font-medium text-blue-500">
-                                    {b.price.toLocaleString()}
-                                  </div>
+                          <div
+                            className="cursor-pointer overflow-hidden whitespace-normal break-words"
+                            onClick={() => handleViewDetailBook(watchedItem.id)}
+                          >
+                            {field.name}
+                          </div>
 
-                                  <Input
-                                    className="h-[30px] w-[60px] text-center"
-                                    onChange={(e) => {
-                                      const newBenefits = [
-                                        ...getValues("info.benefits"),
-                                      ];
+                          <div className="font-medium text-blue-500">
+                            {field.price.toLocaleString()}
+                          </div>
 
-                                      newBenefits[index].quantity =
-                                        e.target.value;
-                                      setValue("info.benefits", newBenefits);
-                                    }}
-                                    type="number"
-                                    value={b.quantity}
-                                  />
+                          <div>
+                            <FormField
+                              control={control}
+                              name={`cartItems.${index}.quantity`}
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormControl>
+                                    <div className="flex items-center gap-1">
+                                      <div
+                                        className="cursor-pointer select-none rounded-md border border-gray-400 p-1"
+                                        onClick={() => {
+                                          form.setValue(
+                                            `cartItems.${index}.quantity`,
+                                            Math.max(
+                                              1,
+                                              Number(
+                                                form.watch(
+                                                  `cartItems.${index}.quantity`,
+                                                ),
+                                              ) - 1,
+                                            ),
+                                          );
+                                          handleQuantityBlur(index);
+                                        }}
+                                      >
+                                        <MinusIcon />
+                                      </div>
 
-                                  <div className="font-medium text-blue-500">
-                                    {b.total.toLocaleString()}
-                                  </div>
+                                      <Input
+                                        {...field}
+                                        className="h-[33px] w-[60px] select-none border-gray-400 text-center text-[15px]"
+                                        max={10}
+                                        min={1}
+                                        onBlur={() => handleQuantityBlur(index)}
+                                        onChange={(e) => {
+                                          const value = Number(e.target.value);
 
-                                  <button
-                                    className="text-red-500 hover:text-red-700"
-                                    onClick={() => {
-                                      const newBenefits = getValues(
-                                        "info.benefits",
-                                      ).filter((_, i) => i !== index);
+                                          if (value <= 10) {
+                                            field.onChange(e);
+                                          }
+                                        }}
+                                        type="number"
+                                      />
 
-                                      setValue("info.benefits", newBenefits);
-                                    }}
-                                    type="button"
-                                  >
-                                    <Trash2Icon
-                                      className="text-gray-400"
-                                      size={20}
-                                    />
-                                  </button>
-                                </div>
-                              ))}
-                            </>
-                          </FormControl>
+                                      <div
+                                        className="cursor-pointer rounded-md border border-gray-400 p-1"
+                                        onClick={() => {
+                                          form.setValue(
+                                            `cartItems.${index}.quantity`,
+                                            Math.min(
+                                              10,
+                                              Number(
+                                                form.watch(
+                                                  `cartItems.${index}.quantity`,
+                                                ),
+                                              ) + 1,
+                                            ),
+                                          );
+                                          handleQuantityBlur(index);
+                                        }}
+                                      >
+                                        <PlusIcon />
+                                      </div>
+                                    </div>
+                                  </FormControl>
+                                </FormItem>
+                              )}
+                            />
+                          </div>
 
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+                          <div className="select-none font-medium text-blue-500">
+                            {(watchedItem?.total || 0).toLocaleString()}
+                          </div>
+
+                          <div>
+                            <Trash2Icon
+                              className="cursor-pointer text-gray-400"
+                              onClick={() => remove(index)}
+                            />
+                          </div>
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
               </form>
@@ -338,7 +411,11 @@ const CartPage = () => {
 
             <Button
               className="mt-5 w-full bg-red-500 hover:bg-red-400"
-              disabled={isSubmitting}
+              disabled={
+                isSubmitting ||
+                getValues("cartItems")?.filter((item) => item.checked)
+                  ?.length === 0
+              }
               onClick={handleBuyBooks}
             >
               Mua hàng
@@ -362,27 +439,21 @@ const CartPage = () => {
                     src="https://danviet.mediacdn.vn/296231569849192448/2023/8/26/sach-nna-ban-tieng-anh-16930541445461508724279.jpg"
                   />
                 </div>
-
                 <div className="mt-3 flex flex-col gap-2">
                   <div className="flex items-center gap-x-2 text-[20px] font-[500] text-red-500">
                     <div>{new Intl.NumberFormat("vi-VN").format(100000)}đ</div>
-
                     <div className="flex items-center justify-center rounded-sm bg-gray-100 p-1 text-xs font-[400] text-black">
                       -30%
                     </div>
                   </div>
-
                   <div className="text-base text-gray-500">Nguyễn Nhật Ánh</div>
-
                   <div className="line-clamp-2 max-w-[180px] text-base font-medium text-gray-900">
                     Tôi thấy hoa vàng trên cỏ xanh
                   </div>
-
                   <div className="mt-1 flex items-center justify-between text-base text-gray-500">
                     <div className="flex items-center gap-x-2 text-xs">
                       <RatingStars rating={5} size={10} /> Đã bán 2000
                     </div>
-
                     <ShoppingCart
                       className="hover:scale-150 hover:text-blue-500"
                       size={16}
@@ -393,7 +464,6 @@ const CartPage = () => {
             </Link>
           ))}
         </div> */}
-
         <div className="mt-5 text-center">
           <Link className="inline-block w-[200px]" href="#" passHref>
             <div className="text-blue- mx-auto mt-2 block w-[200px] rounded-md border border-blue-500 p-2 text-center font-medium text-blue-500 transition-[1000] hover:bg-blue-100">

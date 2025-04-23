@@ -28,7 +28,7 @@ async function Header() {
           href="#"
         >
           <span className="bg-gradient-to-r from-blue-500 via-cyan-500 to-teal-500 bg-clip-text text-2xl font-bold text-transparent">
-            Shelfly
+            Kodansha
           </span>
         </Link>
 

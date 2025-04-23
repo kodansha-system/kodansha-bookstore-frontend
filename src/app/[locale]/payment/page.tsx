@@ -7,6 +7,7 @@ import { toast } from "react-toastify";
 import { useRouter } from "next/navigation";
 
 import { api } from "@/services/axios";
+import { DeliveryMethod } from "@/services/constants";
 import { apiShipping } from "@/services/shippingApi";
 import { useAuthStore } from "@/store/authStore";
 import { useCartStore } from "@/store/cartStore";
@@ -21,11 +22,12 @@ import { CountMoney } from "./components/CountMoney";
 import DiscountSelector from "./components/DiscountSelector";
 
 const shippingSchema = z.object({
-  shippingMethod: z.string().min(1, "Vui lòng chọn đơn vị vận chuyển"),
+  shippingMethod: z.any().optional(),
   paymentMethod: z.string().min(1, "Vui lòng chọn đơn vị vận chuyển"),
   address: z.any().optional(),
-  freeshipVoucher: z.string().optional(),
+  freeshipVoucher: z.any().optional(),
   productVoucher: z.string().optional(),
+  deliveryMethod: z.any().optional(),
 });
 
 const Page = () => {
@@ -33,7 +35,7 @@ const Page = () => {
     price: 0,
   });
   const [address, setAddress] = useState<any>(null);
-  const { books } = useCartStore();
+  const { books_order } = useCartStore();
   const form = useForm<z.infer<typeof shippingSchema>>({
     resolver: zodResolver(shippingSchema),
     defaultValues: {
@@ -41,6 +43,7 @@ const Page = () => {
       paymentMethod: "",
       freeshipVoucher: "",
       productVoucher: "",
+      deliveryMethod: "",
     },
   });
   const [shippingOptions, setShippingOptions] = useState([]);
@@ -49,7 +52,10 @@ const Page = () => {
   const [selectedFreeshipVoucher, setSelectedFreeshipVoucher] = useState<any>();
   const [selectedProductVoucher, setSelectedProductVoucher] = useState<any>();
   const { user } = useAuthStore();
+  const [submitting, setSubmitting] = useState(false);
   const router = useRouter();
+  const [selectedShopId, setSelectedShopId] = useState<string | null>(null);
+  const [totalToPay, setTotalToPay] = useState("0");
 
   const handleCreateShipment = async (data: any) => {
     const res = await apiShipping.post("/shipments", {
@@ -86,48 +92,79 @@ const Page = () => {
     return res;
   };
 
-  const onSubmit = async (data: {
-    freeshipVoucher?: string;
-    productVoucher?: string;
-    shippingMethod: string;
-    paymentMethod: string;
-  }) => {
+  const onSubmit = async (data: any) => {
     try {
-      const resCreateShipment: any = await handleCreateShipment(data);
+      setSubmitting(true);
+      let dataOrder: any = {
+        delivery_method: data.deliveryMethod,
+        shop_id: selectedShopId,
+        total_to_pay: totalToPay,
+        total_price: total.price,
+        discount: total.discount,
+        books: books_order?.map((item: any) => {
+          return {
+            book_id: item.id,
+            price: item.price,
+            quantity: Number(item.quantity),
+          };
+        }),
+        payment_method: data.paymentMethod,
+        vouchers: [data.productVoucher],
+      };
 
-      if (resCreateShipment) {
-        const dataOrder = {
-          books: books?.map((item: any) => {
-            return {
-              book_id: item.id,
-              price: item.price,
-              quantity: item.quantity,
-            };
-          }),
-          total_to_pay: 1770667,
-          total_price: 2214000,
-          discount: 510600,
-          carrier: {
-            id: selectedShippingMethod.id,
-            name: selectedShippingMethod.name,
-            fee: selectedShippingMethod.price,
-            order_code: resCreateShipment?.id,
-          },
-          paymethod: data.paymentMethod,
-          vouchers: [data.productVoucher, data.freeshipVoucher],
-          address: {
-            name: user?.name,
-            phone: user?.phone || "09999999",
+      if (data?.deliveryMethod === DeliveryMethod.HOME_DELIVERY) {
+        dataOrder = {
+          ...dataOrder,
+          delivery_address: {
+            street: address.detail,
+            ward_id: address.ward,
+            ward_name: "",
+            district_id: address.district,
+            district_name: "",
+            province_id: address.province,
+            province_name: "",
+            phone: user.phone || "00000",
+            customer_name: user.name,
           },
         };
-
-        await api.post("/orders", dataOrder);
-
-        toast.success("Tạo đơn hàng thành công!");
-
-        router.push("/my-order");
       }
+      // const resCreateShipment: any = await handleCreateShipment(data);
+
+      // if (resCreateShipment) {
+      //   const dataOrder = {
+      //     books: books_order?.map((item: any) => {
+      //       return {
+      //         book_id: item.id,
+      //         price: item.price,
+      //         quantity: Number(item.quantity),
+      //       };
+      //     }),
+      //     total_to_pay: 1770667,
+      //     total_price: total.price,
+      //     discount: total.discount,
+      //     carrier: {
+      //       id: selectedShippingMethod.id,
+      //       name: selectedShippingMethod.name,
+      //       fee: selectedShippingMethod.price,
+      //       order_code: resCreateShipment?.id,
+      //     },
+      //     paymethod: data.paymentMethod,
+      //     vouchers: [data.productVoucher, data.freeshipVoucher],
+      //     address: {
+      //       name: user?.name,
+      //       phone: user?.phone || "09999999",
+      //     },
+      //   };
+
+      const res = await api.post("/orders", dataOrder);
+
+      toast.success("Tạo đơn hàng thành công!");
+
+      setSubmitting(false);
+      // router.push("/my-order");
+      // }
     } catch (error) {
+      setSubmitting(false);
       toast.error("Tạo đơn hàng không thành công!");
       console.log(error);
     }
@@ -135,14 +172,14 @@ const Page = () => {
 
   const total = useMemo(() => {
     const price =
-      books?.reduce(
+      books_order?.reduce(
         (sum: number, item: any) =>
           sum + Number(item.price + item.discount) * item.quantity,
         0,
       ) || 0;
 
     const discount =
-      books?.reduce(
+      books_order?.reduce(
         (sum: number, item: any) => sum + Number(item.discount) * item.quantity,
         0,
       ) || 0;
@@ -174,7 +211,7 @@ const Page = () => {
       shippingDiscount: shippingFee,
       shippingFeeAfterVoucher: shippingFee,
     };
-  }, [books, selectedShippingMethod]);
+  }, [books_order, selectedShippingMethod]);
 
   return (
     <>
@@ -188,13 +225,17 @@ const Page = () => {
       >
         <div className="rounded-md">
           <div className="w-full rounded-md border bg-white p-5 pb-[30px] text-[15px]">
-            <BookTable books={books} />
+            <BookTable books={books_order} />
           </div>
 
           <ChooseShippingMethod
             address={address}
+            books={books_order}
             form={form}
+            selectedShopId={selectedShopId}
+            setSelectedFreeshipVoucher={setSelectedFreeshipVoucher}
             setSelectedMethod={setSelectedShippingMethod}
+            setSelectedShopId={setSelectedShopId}
             setShippingOptions={setShippingOptions}
             shippingOptions={shippingOptions}
             total={total}
@@ -208,10 +249,12 @@ const Page = () => {
 
           <DiscountSelector
             form={form}
+            selectedShopId={selectedShopId}
             setSelectedFreeshipVoucher={setSelectedFreeshipVoucher}
             setSelectedProductVoucher={setSelectedProductVoucher}
             setSortedFreeshipVouchers={setSortedFreeshipVouchers}
             setSortedProductVouchers={setSortedProductVouchers}
+            shippingOptions={shippingOptions}
             sortedFreeshipVouchers={sortedFreeshipVouchers}
             sortedProductVouchers={sortedProductVouchers}
             total={total}
@@ -222,6 +265,9 @@ const Page = () => {
             onSubmit={onSubmit}
             selectedFreeshipVoucher={selectedFreeshipVoucher}
             selectedProductVoucher={selectedProductVoucher}
+            selectedShopId={selectedShopId}
+            setTotalToPay={setTotalToPay}
+            submitting={submitting}
             total={total}
           />
         </div>
