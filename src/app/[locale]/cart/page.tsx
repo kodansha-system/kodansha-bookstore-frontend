@@ -190,27 +190,27 @@ const CartPage = () => {
         Giỏ hàng
       </div>
 
+      <div className="mx-[60px] mb-3 flex gap-3">
+        <div
+          className="flex w-[140px] cursor-pointer items-center justify-center rounded-md border border-red-500 bg-white text-sm font-medium text-red-500 hover:bg-red-500 hover:text-white"
+          onClick={handleChooseAllBooks}
+        >
+          Chọn mua tất cả
+        </div>
+
+        <Button
+          className="w-[150px] border border-blue-500 bg-blue-500 text-white hover:bg-blue-500"
+          onClick={form.handleSubmit(onSubmit)}
+        >
+          Cập nhật giỏ hàng
+        </Button>
+      </div>
+
       <div className="mx-[60px] flex select-none flex-wrap gap-3 bg-gray-50 py-5 pt-0">
         <div className="flex w-[1000px] gap-x-3 overflow-x-auto bg-gray-50 py-5 pt-0">
           <div className="min-w-[1000px] rounded-md">
             <Form {...form}>
               <form autoComplete="off" onSubmit={form.handleSubmit(onSubmit)}>
-                <div className="mb-3 flex gap-3">
-                  <div
-                    className="flex w-[140px] cursor-pointer items-center justify-center rounded-md border border-red-500 bg-white text-sm font-medium text-red-500 hover:bg-red-500 hover:text-white"
-                    onClick={handleChooseAllBooks}
-                  >
-                    Chọn mua tất cả
-                  </div>
-
-                  <Button
-                    className="w-[150px] border border-blue-500 bg-blue-500 text-white hover:bg-blue-500"
-                    onClick={form.handleSubmit(onSubmit)}
-                  >
-                    Cập nhật giỏ hàng
-                  </Button>
-                </div>
-
                 <div className="overflow-hidden text-base">
                   <div className="mb-3 grid grid-cols-[80px_100px_1fr_100px_150px_150px_50px] gap-3 rounded-md border bg-white p-3 text-left font-medium">
                     <div>Chọn</div>
