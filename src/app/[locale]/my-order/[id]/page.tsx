@@ -208,7 +208,7 @@ const Page = ({ params }: DetailOrderPageProps) => {
               <div>
                 Tổng tiền:&nbsp;
                 <span className="font-bold text-red-500">
-                  {dataOrder?.total_price?.toLocaleString()}
+                  {dataOrder?.total_to_pay?.toLocaleString()}
                 </span>
               </div>
 

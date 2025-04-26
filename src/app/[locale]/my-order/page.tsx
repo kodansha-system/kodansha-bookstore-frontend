@@ -128,7 +128,7 @@ const Page = () => {
                 listOrder?.map((item: any, index) => {
                   return (
                     <div
-                      className="mt-5 rounded-md border p-5 px-6"
+                      className="mt-5 rounded-md border-2 p-5 px-6"
                       key={index}
                       onClick={() => handleViewDetailOrder(item?.id)}
                     >
@@ -160,7 +160,7 @@ const Page = () => {
                         <div>
                           Tổng đơn:&nbsp;
                           <span className="text-base font-medium text-red-500">
-                            {item?.total_price.toLocaleString()}đ
+                            {item?.total_to_pay.toLocaleString()}đ
                           </span>
                         </div>
                       </div>
