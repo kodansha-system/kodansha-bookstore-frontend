@@ -37,6 +37,8 @@ const FormSchema = z.object({
   is_freeship_extra: z.boolean().default(false).optional(),
   is_from_four_star: z.boolean().default(false).optional(),
   sort_by: z.string().default("price").optional(),
+  author: z.any(),
+  category: z.any(),
 });
 
 const NoOptionsMessage = () => {
@@ -48,7 +50,7 @@ const NoOptionsMessage = () => {
 };
 
 function DashboardPage() {
-  const { data, isLoading, error } = useBooks({});
+  const { data } = useBooks({ limit: 48 });
   const [listCategories, setListCategories] = useState([]);
   const [listAuthors, setListAuthors] = useState([]);
   const router = useRouter();
@@ -61,18 +63,16 @@ function DashboardPage() {
       is_freeship_extra: false,
       is_from_four_star: false,
       sort_by: "price",
+      author: "",
+      category: "",
     },
   });
+
+  const allBooks = data?.pages.flatMap((page) => page.books) || [];
 
   function onSubmit(data: z.infer<typeof FormSchema>) {
     console.log(data);
   }
-
-  const sortOptions = [
-    { value: "chocolate", label: "Chocolate" },
-    { value: "strawberry", label: "Strawberry" },
-    { value: "vanilla", label: "Vanilla" },
-  ];
 
   const handleGetListCategories = async () => {
     const res = await api.get("/categories");
@@ -177,7 +177,7 @@ function DashboardPage() {
 
         <div className="mt-5 flex flex-wrap items-stretch justify-center gap-1 lg:gap-3">
           {data &&
-            data?.books?.splice(0, 6)?.map((item: any, index: number) => (
+            allBooks?.splice(0, 6)?.map((item: any, index: number) => (
               <div className="flex max-w-[228px] flex-1" key={index}>
                 <div className="flex h-full flex-col rounded-lg border border-gray-200 bg-white p-3 shadow-sm transition-transform duration-1000 hover:shadow-lg">
                   <div className="relative size-[180px]">
@@ -240,7 +240,7 @@ function DashboardPage() {
 
         <div className="mt-5 text-center">
           <Link className="inline-block w-[200px]" href="#" passHref>
-            <div className="text-blue- mx-auto mt-2 block w-[200px] rounded-md border border-red-500 p-2 text-center font-medium text-red-500 transition-[1000] hover:bg-red-100">
+            <div className="mx-auto mt-2 block w-[200px] rounded-md border border-red-500 p-2 text-center font-medium text-red-500 transition-[1000] hover:bg-red-100">
               Xem thêm
             </div>
           </Link>
@@ -257,7 +257,7 @@ function DashboardPage() {
               <div className="flex flex-wrap gap-x-5">
                 <FormField
                   control={form.control}
-                  name="is_from_four_star"
+                  name="category"
                   render={({ field }) => (
                     <FormItem className="flex flex-row items-center gap-x-2 rounded-md pl-4 pt-4">
                       <div className="text-sm text-gray-600">Danh mục:</div>
@@ -266,11 +266,12 @@ function DashboardPage() {
                         <Select
                           components={{ NoOptionsMessage }}
                           isMulti
-                          onChange={(selected) =>
+                          onChange={(selected) => {
+                            console.log(selected, "check");
                             field.onChange(
-                              selected.map((option) => option.value),
-                            )
-                          }
+                              selected.map((option: any) => option.value),
+                            );
+                          }}
                           options={listCategories}
                           placeholder="Chọn danh mục"
                           styles={{
@@ -284,7 +285,7 @@ function DashboardPage() {
                               fontSize: "14px",
                             }),
                           }}
-                          value={sortOptions.filter((option) =>
+                          value={listCategories.filter((option: any) =>
                             Array.isArray(field.value)
                               ? field.value.includes(option.value)
                               : false,
@@ -297,7 +298,7 @@ function DashboardPage() {
 
                 <FormField
                   control={form.control}
-                  name="is_from_four_star"
+                  name="author"
                   render={({ field }) => (
                     <FormItem className="flex flex-row items-center gap-x-2 rounded-md pl-4 pt-4">
                       <div className="text-sm text-gray-600">Tác giả:</div>
@@ -308,7 +309,7 @@ function DashboardPage() {
                           isMulti
                           onChange={(selected) =>
                             field.onChange(
-                              selected.map((option) => option.value),
+                              selected.map((option: any) => option.value),
                             )
                           }
                           options={listAuthors}
@@ -324,7 +325,7 @@ function DashboardPage() {
                               fontSize: "14px",
                             }),
                           }}
-                          value={sortOptions.filter((option) =>
+                          value={listAuthors.filter((option: any) =>
                             Array.isArray(field.value)
                               ? field.value.includes(option.value)
                               : false,
@@ -408,25 +409,6 @@ function DashboardPage() {
                       </FormItem>
                     )}
                   />
-
-                  <FormField
-                    control={form.control}
-                    name="is_from_four_star"
-                    render={({ field }) => (
-                      <FormItem className="flex flex-row items-center space-x-3 space-y-0 rounded-md p-4">
-                        <FormControl>
-                          <Checkbox
-                            checked={field.value}
-                            onCheckedChange={field.onChange}
-                          />
-                        </FormControl>
-
-                        <div className="space-y-1 text-sm leading-none text-gray-600">
-                          Đặt trước
-                        </div>
-                      </FormItem>
-                    )}
-                  />
                 </div>
 
                 <div>
@@ -468,7 +450,7 @@ function DashboardPage() {
       <div className="mx-[60px]">
         <div className="mt-5 flex grow flex-wrap justify-center gap-5">
           {data &&
-            data?.books?.map((item: any, index: number) => (
+            allBooks?.map((item: any, index: number) => (
               <div className="block" key={index}>
                 <div className="min-h-full rounded-lg border border-gray-200 bg-white p-3 shadow-sm transition-transform duration-1000 hover:shadow-lg">
                   <div className="relative size-[180px]">
@@ -529,7 +511,10 @@ function DashboardPage() {
 
         <div className="mt-5 text-center">
           <Link className="inline-block w-[200px]" href="#" passHref>
-            <div className="text-blue- mx-auto mt-2 block w-[200px] rounded-md border border-blue-500 p-2 text-center font-medium text-blue-500 transition-[1000] hover:bg-blue-100">
+            <div
+              className="mx-auto mt-2 block w-[200px] rounded-md border border-blue-500 p-2 text-center font-medium text-blue-500 transition-[1000] hover:bg-blue-100"
+              onClick={() => router.push("/search")}
+            >
               Xem thêm
             </div>
           </Link>

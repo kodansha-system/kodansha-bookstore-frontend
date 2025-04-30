@@ -1,8 +1,8 @@
 import { api } from "@/services/axios";
-import { useQuery } from "@tanstack/react-query";
+import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
 
 const fetchBooks = async (params: any) => {
-  const response = await api.get("/books?pageSize=50", { params });
+  const response = await api.get("/books", { params });
 
   return response.data;
 };
@@ -14,9 +14,15 @@ const getDetailBooks = async (id: string) => {
 };
 
 export const useBooks = (params: any) => {
-  return useQuery({
+  return useInfiniteQuery({
     queryKey: ["books", params],
-    queryFn: () => fetchBooks(params),
+    queryFn: ({ pageParam = 1 }) => fetchBooks({ ...params, page: pageParam }),
+    initialPageParam: 1,
+    getNextPageParam: (lastPage: any) => {
+      const { currentPage, totalPages } = lastPage.pagination;
+
+      return currentPage < totalPages ? currentPage + 1 : undefined;
+    },
   });
 };
 
