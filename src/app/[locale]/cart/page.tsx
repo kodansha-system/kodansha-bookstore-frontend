@@ -360,24 +360,7 @@ const CartPage = () => {
         </div>
 
         <div className="text-sm text-gray-500">
-          <div className="w-[350px] rounded-md border bg-white p-4">
-            <div className="mb-1 flex items-center justify-between">
-              <div className="text-gray-500">Giao tới</div>
-
-              <div className="text-base text-blue-500">Thay đổi</div>
-            </div>
-
-            <div className="text-base font-medium text-black">
-              Lương Minh Anh | 0357227195
-            </div>
-
-            <div className="mt-1 overflow-hidden whitespace-normal break-words text-sm text-gray-400">
-              Ký túc xá Trường ĐH Công Nghiệp Hà Nội, Phường Minh Khai, Quận Bắc
-              Từ Liêm, Hà Nội
-            </div>
-          </div>
-
-          <div className="mt-3 flex w-[350px] flex-col gap-y-2 rounded-md border bg-white p-4">
+          <div className="flex w-[350px] flex-col gap-y-2 rounded-md border bg-white p-4">
             <div className="flex justify-between">
               <div>Tổng tiền hàng: </div>
 

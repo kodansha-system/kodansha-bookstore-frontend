@@ -1,8 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useForm } from "react-hook-form";
+import { FormProvider, useForm } from "react-hook-form";
 
+import { api } from "@/services/axios";
 import { apiShipping } from "@/services/shippingApi";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -16,6 +17,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -29,14 +31,34 @@ import {
 const addressSchema = z.object({
   province: z.string().min(1, "Vui lòng chọn tỉnh/thành"),
   district: z.string().min(1, "Vui lòng chọn quận/huyện"),
-  ward: z.string().min(1, "Vui lòng chọn phường/xã"),
+  ward: z.any(),
   detail: z.string().min(1, "Vui lòng nhập địa chỉ cụ thể"),
-  isDefault: z.boolean().optional(),
+  phone_number: z
+    .string()
+    .min(1, "Vui lòng nhập số điện thoại người nhận")
+    .regex(/^[0-9]+$/, "Số điện thoại chỉ được chứa số")
+    .min(10, "Số điện thoại phải có ít nhất 10 chữ số")
+    .max(11, "Số điện thoại không quá 11 chữ số"),
+  customer_name: z.string().min(1, "Vui lòng nhập tên người nhận"),
+  is_default: z.boolean().optional(),
 });
 
 type AddressFormType = z.infer<typeof addressSchema>;
 
-export const ChooseAddressDialog = ({ open, setOpen, setAddress }: any) => {
+export const ChooseAddressDialog = ({
+  open,
+  setOpen,
+  setAddress,
+  isAddAddress,
+  isUpdateAddress,
+  setIsAddAddress,
+  setIsUpdateAddress,
+  handleGetListAddress,
+  handleAddAddress,
+  handleAddDataAddress,
+  defaultAddress,
+  idProfile,
+}: any) => {
   const [addresses, setAddresses] = useState<any[]>([]);
   const [provinces, setProvinces] = useState<any[]>([]);
   const [districts, setDistricts] = useState<any[]>([]);
@@ -49,45 +71,103 @@ export const ChooseAddressDialog = ({ open, setOpen, setAddress }: any) => {
       district: "",
       ward: "",
       detail: "",
-      isDefault: false,
+      phone_number: "",
+      customer_name: "",
+      is_default: false,
     },
   });
 
+  const provinceCode = form.watch("province");
+  const districtCode = form.watch("district");
+
   useEffect(() => {
     if (open) {
-      apiShipping.get(`/cities`).then((res: any) => {
-        setProvinces(res.data);
-      });
+      (async () => {
+        const resProvinces = await apiShipping.get(`/cities`);
 
-      setAddresses([]);
+        setProvinces(resProvinces.data);
+        setAddresses([]);
+
+        if (defaultAddress) {
+          form.reset({
+            province: defaultAddress.province || "",
+            district: "",
+            ward: "",
+            detail: defaultAddress.street || "",
+            phone_number: defaultAddress.phone_number || "",
+            customer_name: defaultAddress.customer_name || "",
+            is_default: defaultAddress.is_default || false,
+          });
+
+          if (defaultAddress.province) {
+            const resDistricts = await apiShipping.get(
+              `/cities/${defaultAddress.province}/districts`,
+            );
+
+            setDistricts(resDistricts.data);
+
+            form.setValue("district", defaultAddress.district || "");
+
+            if (defaultAddress.district) {
+              const resWards = await apiShipping.get(
+                `/districts/${defaultAddress.district}/wards`,
+              );
+
+              setWards(resWards.data);
+
+              form.setValue("ward", defaultAddress.ward || "");
+            }
+          }
+        } else {
+          form.reset();
+        }
+      })();
     }
   }, [open]);
 
   useEffect(() => {
-    const provinceCode = form.watch("province");
-
     if (provinceCode) {
       apiShipping.get(`/cities/${provinceCode}/districts`).then((res) => {
         setDistricts(res.data);
         setWards([]);
-        form.setValue("district", "");
-        form.setValue("ward", "");
+
+        if (!defaultAddress) {
+          form.setValue("district", "");
+          form.setValue("ward", "");
+        }
       });
     }
-  }, [form.watch("province")]);
+  }, [provinceCode]);
 
   useEffect(() => {
-    const districtCode = form.watch("district");
-
     if (districtCode) {
       apiShipping.get(`/districts/${districtCode}/wards`).then((res) => {
         setWards(res.data);
-        form.setValue("ward", "");
+
+        if (!defaultAddress) {
+          form.setValue("ward", "");
+        }
       });
     }
-  }, [form.watch("district")]);
+  }, [districtCode]);
 
-  const onSubmit = (data: AddressFormType) => {
+  useEffect(() => {
+    if (defaultAddress) {
+      form.reset({
+        province: defaultAddress.province || "",
+        district: defaultAddress.district || "",
+        ward: defaultAddress.ward || "",
+        detail: defaultAddress.street || "",
+        phone_number: defaultAddress.phone_number || "",
+        customer_name: defaultAddress.customer_name || "",
+        is_default: defaultAddress.is_default || false,
+      });
+    } else {
+      form.reset();
+    }
+  }, [defaultAddress, form, open]);
+
+  const onSubmit = async (data: AddressFormType) => {
     const province = provinces.find(
       (p) => p.id.toString() === data.province,
     )?.name;
@@ -103,6 +183,39 @@ export const ChooseAddressDialog = ({ open, setOpen, setAddress }: any) => {
       fullAddress,
     });
 
+    if (isAddAddress) {
+      const res: any = await api.post(`/users/${idProfile}/addresses`, {
+        ...data,
+        street: data?.detail,
+        full_address: fullAddress,
+      });
+
+      setIsAddAddress(false);
+
+      handleGetListAddress();
+      setOpen(false);
+
+      return;
+    }
+
+    if (isUpdateAddress) {
+      const res: any = await api.put(
+        `/users/${idProfile}/addresses/${defaultAddress.id}`,
+        {
+          ...data,
+          street: data?.detail,
+          full_address: fullAddress,
+        },
+      );
+
+      setIsUpdateAddress(false);
+
+      handleGetListAddress();
+      setOpen(false);
+
+      return;
+    }
+
     setOpen(false);
   };
 
@@ -113,98 +226,127 @@ export const ChooseAddressDialog = ({ open, setOpen, setAddress }: any) => {
           <DialogTitle>Chọn địa chỉ giao hàng</DialogTitle>
         </DialogHeader>
 
-        {addresses.length === 0 ? (
-          <div className="space-y-4">
-            <div>
-              <Label>Tỉnh / Thành phố</Label>
+        <FormProvider {...form}>
+          {addresses.length === 0 ? (
+            <div className="space-y-4">
+              <div>
+                <Label>Tỉnh / Thành phố</Label>
 
-              <Select
-                onValueChange={(val) => form.setValue("province", val)}
-                value={form.watch("province")}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Chọn tỉnh / thành phố" />
-                </SelectTrigger>
+                <Select
+                  onValueChange={(val) => form.setValue("province", val)}
+                  value={form.watch("province")}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Chọn tỉnh / thành phố" />
+                  </SelectTrigger>
 
-                <SelectContent>
-                  {provinces.map((p) => (
-                    <SelectItem key={p.id} value={p.id.toString()}>
-                      {p.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+                  <SelectContent>
+                    {provinces.map((p) => (
+                      <SelectItem key={p.id} value={p.id.toString()}>
+                        {p.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <Label>Quận / Huyện</Label>
+
+                <Select
+                  onValueChange={(val) => form.setValue("district", val)}
+                  value={form.watch("district")}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Chọn quận / huyện" />
+                  </SelectTrigger>
+
+                  <SelectContent>
+                    {districts.map((d) => (
+                      <SelectItem key={d.id} value={d.id.toString()}>
+                        {d.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <Label>Phường / Xã</Label>
+
+                <Select
+                  onValueChange={(val) => form.setValue("ward", val)}
+                  value={form.watch("ward")}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Chọn phường / xã" />
+                  </SelectTrigger>
+
+                  <SelectContent>
+                    {wards.map((w) => (
+                      <SelectItem key={w.id} value={w.id.toString()}>
+                        {w.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <Label>Địa chỉ cụ thể</Label>
+
+                <Input
+                  {...form.register("detail")}
+                  placeholder="Nhập địa chỉ cụ thể"
+                />
+              </div>
+
+              <div>
+                <Label>Tên người nhận</Label>
+
+                <Input
+                  {...form.register("customer_name")}
+                  placeholder="Nhập tên người nhận"
+                />
+              </div>
+
+              <div>
+                <Label>Số điện thoại người nhận</Label>
+
+                <Input
+                  {...form.register("phone_number")}
+                  placeholder="Nhập số điện thoại người nhận"
+                />
+
+                <FormMessage />
+              </div>
+
+              <div className="flex items-center space-x-2">
+                <Checkbox
+                  checked={form.watch("is_default")}
+                  disabled={defaultAddress?.is_default}
+                  onCheckedChange={(checked) =>
+                    form.setValue("is_default", !!checked)
+                  }
+                />
+
+                <Label>Đặt làm địa chỉ mặc định</Label>
+              </div>
+
+              <DialogFooter>
+                <Button
+                  onClick={form.handleSubmit(onSubmit, (errors) => {
+                    console.log("Form có lỗi:", errors);
+                  })}
+                >
+                  Lưu địa chỉ
+                </Button>
+              </DialogFooter>
             </div>
-
-            <div>
-              <Label>Quận / Huyện</Label>
-
-              <Select
-                onValueChange={(val) => form.setValue("district", val)}
-                value={form.watch("district")}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Chọn quận / huyện" />
-                </SelectTrigger>
-
-                <SelectContent>
-                  {districts.map((d) => (
-                    <SelectItem key={d.id} value={d.id.toString()}>
-                      {d.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div>
-              <Label>Phường / Xã</Label>
-
-              <Select
-                onValueChange={(val) => form.setValue("ward", val)}
-                value={form.watch("ward")}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Chọn phường / xã" />
-                </SelectTrigger>
-
-                <SelectContent>
-                  {wards.map((w) => (
-                    <SelectItem key={w.id} value={w.id.toString()}>
-                      {w.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div>
-              <Label>Địa chỉ cụ thể</Label>
-
-              <Input
-                {...form.register("detail")}
-                placeholder="Nhập địa chỉ cụ thể"
-              />
-            </div>
-
-            <div className="flex items-center space-x-2">
-              <Checkbox
-                checked={form.watch("isDefault")}
-                onCheckedChange={(checked) =>
-                  form.setValue("isDefault", !!checked)
-                }
-              />
-
-              <Label>Đặt làm địa chỉ mặc định</Label>
-            </div>
-
-            <DialogFooter>
-              <Button onClick={form.handleSubmit(onSubmit)}>Lưu địa chỉ</Button>
-            </DialogFooter>
-          </div>
-        ) : (
-          <div>Hiển thị danh sách địa chỉ nếu có (id cũ)</div>
-        )}
+          ) : (
+            <div>Hiển thị danh sách địa chỉ nếu có (id cũ)</div>
+          )}
+        </FormProvider>
       </DialogContent>
     </Dialog>
   );

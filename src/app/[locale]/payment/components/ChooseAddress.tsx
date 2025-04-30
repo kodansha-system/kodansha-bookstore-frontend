@@ -1,9 +1,29 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
-import { ChooseAddressDialog } from "./ChooseAddressDialog";
+import { api } from "@/services/axios";
+import { useAuthStore } from "@/store/authStore";
 
-export const ChooseAddress = ({ setAddress }: any) => {
+import { ChooseAddressFromList } from "./ChooseAddressFromList";
+
+export const ChooseAddress = ({ setAddress, address }: any) => {
   const [open, setOpen] = useState(false);
+  const { user: profile } = useAuthStore();
+
+  const handleGetDefaultAddress = async () => {
+    const res = await api.get(`/users/${profile?.id}/addresses`, {
+      params: { is_default: true },
+    });
+
+    if (res?.data) {
+      setAddress(res?.data);
+    }
+  };
+
+  useEffect(() => {
+    if (profile) {
+      handleGetDefaultAddress();
+    }
+  }, [profile]);
 
   return (
     <div className="w-[350px] rounded-md border bg-white p-4">
@@ -14,7 +34,7 @@ export const ChooseAddress = ({ setAddress }: any) => {
           Thay đổi
         </div>
 
-        <ChooseAddressDialog
+        <ChooseAddressFromList
           open={open}
           setAddress={setAddress}
           setOpen={setOpen}
@@ -22,12 +42,11 @@ export const ChooseAddress = ({ setAddress }: any) => {
       </div>
 
       <div className="text-base font-medium text-black">
-        Lương Minh Anh | 0357227195
+        {address?.customer_name} | {address?.phone_number}
       </div>
 
       <div className="mt-1 overflow-hidden whitespace-normal break-words text-sm text-gray-400">
-        Ký túc xá Trường ĐH Công Nghiệp Hà Nội, Phường Minh Khai, Quận Bắc Từ
-        Liêm, Hà Nội
+        {address?.full_address || address?.fullAddress}
       </div>
     </div>
   );

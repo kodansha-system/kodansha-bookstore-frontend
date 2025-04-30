@@ -74,8 +74,9 @@ const Page = () => {
           district: address?.district,
           ward: address?.ward,
           street: address?.detail,
-          name: user.name || "Minh Anh",
-          phone: user.phone || "095959595",
+          full_address: address?.full_address || address?.fullAddress,
+          name: address?.customer_name || user.name,
+          phone: address?.phone_number || user.phone,
         },
         parcel: {
           cod: total.price - total.discount,
@@ -116,15 +117,9 @@ const Page = () => {
         dataOrder = {
           ...dataOrder,
           delivery_address: {
-            street: address.detail,
-            ward_id: address.ward,
-            ward_name: "",
-            district_id: address.district,
-            district_name: "",
-            province_id: address.province,
-            province_name: "",
-            phone: user.phone || "00000",
-            customer_name: user.name,
+            phone_number: address?.phone_number || user.phone,
+            customer_name: address?.customer_name || user.name,
+            full_address: address?.full_address || address?.fullAddress,
           },
         };
       }
@@ -245,7 +240,7 @@ const Page = () => {
         </div>
 
         <div className="text-sm text-gray-500">
-          <ChooseAddress setAddress={setAddress} />
+          <ChooseAddress address={address} setAddress={setAddress} />
 
           <DiscountSelector
             form={form}

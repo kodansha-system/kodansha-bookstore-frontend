@@ -172,11 +172,15 @@ const Page = ({ params }: DetailOrderPageProps) => {
         <div className="rounded-md px-[100px]">
           <div className="flex justify-between">
             <div className="flex w-full flex-col gap-3 rounded-md py-5 pb-[30px] text-[15px]">
-              <div>Tên người nhận: {dataOrder?.address?.name}</div>
+              <div>
+                Tên người nhận: {dataOrder?.delivery_address?.customer_name}
+              </div>
 
-              <div>Số điện thoại: {dataOrder?.address?.phone}</div>
+              <div>
+                Số điện thoại: {dataOrder?.delivery_address?.phone_number}
+              </div>
 
-              <div>Địa chỉ: {dataOrder?.address?.detail}</div>
+              <div>Địa chỉ: {dataOrder?.delivery_address?.full_address}</div>
 
               <div>
                 Phương thức thanh toán:&nbsp;
