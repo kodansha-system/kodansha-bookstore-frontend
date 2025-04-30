@@ -6,6 +6,7 @@ import { toast } from "react-toastify";
 import { useTranslations } from "next-intl";
 
 import { loginAction } from "@/app/actions/auth";
+import { api } from "@/services/axios";
 import { useAuthStore } from "@/store/authStore";
 import { CircleUser } from "lucide-react";
 
@@ -44,7 +45,9 @@ const Account = () => {
 
     if (res && res.statusCode === 201) {
       toast.success("Đăng nhập thành công");
-      setUser(res.data.user);
+      const resDetailUser = await api.get(`/users/${res.data.user._id}`);
+
+      setUser(resDetailUser.data);
       setOpen(false);
     } else {
       toast.error("Email/mật khẩu không khớp");
