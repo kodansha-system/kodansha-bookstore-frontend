@@ -117,7 +117,7 @@ const Page = () => {
             book_id: item.id,
             price: item.price,
             quantity: Number(item.quantity),
-            is_flash_sale: item.is_flash_sale,
+            is_flash_sale: item.is_flash_sale || false,
           };
         }),
         payment_method: data.paymentMethod,
