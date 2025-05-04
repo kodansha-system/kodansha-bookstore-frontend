@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "react-toastify";
 
@@ -104,6 +104,21 @@ const ProductDetailPage = ({ params }: ProductDetailPageProps) => {
   const { setBookToBuy } = useCartStore();
   const router = useRouter();
   const [countdown, setCountdown] = useState<any>();
+  const [listReview, setListReview] = useState<any[]>([]);
+  const { listBookSameCategory, detailBook } = useDetailBook(params.slug);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
+
+  const rating = useMemo(() => {
+    return {
+      total_count:
+        detailBook?.rating?.count?.oneStar +
+        detailBook?.rating?.count?.twoStar +
+        detailBook?.rating?.count?.threeStar +
+        detailBook?.rating?.count?.fourStar +
+        detailBook?.rating?.count?.fiveStar,
+    };
+  }, [detailBook]);
 
   const handleAddToCart = async (data: any) => {
     try {
@@ -160,10 +175,6 @@ const ProductDetailPage = ({ params }: ProductDetailPageProps) => {
     router.push("/payment");
   };
 
-  const { listBookSameCategory, detailBook } = useDetailBook(params.slug);
-
-  if (!detailBook) return null;
-
   const getActiveFlashSale = async () => {
     try {
       const response = await api.get("/flashsales/active");
@@ -173,6 +184,27 @@ const ProductDetailPage = ({ params }: ProductDetailPageProps) => {
       console.error("Lỗi khi gọi flash sale:", error);
 
       return null;
+    }
+  };
+
+  const handleGetListReview = async (bookId: string, currentPage: number) => {
+    try {
+      const res: any = await api.get(
+        `/reviews?book_id=${bookId}&current=${currentPage}&pageSize=10`,
+      );
+      const newReviews = res?.data?.reviews || [];
+
+      setListReview((prev) => [...prev, ...newReviews]);
+
+      const meta = res?.data?.meta;
+
+      console.log(meta);
+
+      if (meta.currentPage >= meta.totalPages) {
+        setHasMore(false);
+      }
+    } catch (error) {
+      console.error("Lỗi khi tải đánh giá", error);
     }
   };
 
@@ -193,7 +225,19 @@ const ProductDetailPage = ({ params }: ProductDetailPageProps) => {
     };
 
     fetchAndStartCountdown();
+
+    if (params?.slug) {
+      handleGetListReview(params?.slug, page);
+    }
   }, [params?.slug]);
+
+  const handleLoadMore = () => {
+    const nextPage = page + 1;
+
+    setPage(nextPage);
+
+    handleGetListReview(detailBook?.id, nextPage);
+  };
 
   const startCountdown = (endTimeStr: string) => {
     const endTime = new Date(endTimeStr).getTime();
@@ -231,6 +275,8 @@ const ProductDetailPage = ({ params }: ProductDetailPageProps) => {
     }, 1000);
   };
 
+  if (!detailBook) return null;
+
   return (
     <ProductContainer>
       <ProductTop>
@@ -254,12 +300,12 @@ const ProductDetailPage = ({ params }: ProductDetailPageProps) => {
                 {[...Array(5)].map((_, i) => (
                   <Star
                     color={
-                      i < Math.floor(detailBook?.rating_average)
+                      i < Math.floor(detailBook?.rating?.average)
                         ? "#FFD700"
                         : "#C0C0C0"
                     }
                     fill={
-                      i < Math.floor(detailBook?.rating_average)
+                      i < Math.floor(detailBook?.rating?.average)
                         ? "#FFD700"
                         : "#C0C0C0"
                     }
@@ -269,7 +315,8 @@ const ProductDetailPage = ({ params }: ProductDetailPageProps) => {
                 ))}
 
                 <span className="text-sm text-gray-500">
-                  ({detailBook?.rating_count}) | Đã bán:&nbsp;
+                  ({rating.total_count}
+                  &nbsp;lượt đánh giá ) | Đã bán:&nbsp;
                   {detailBook?.total_sold}
                 </span>
               </div>
@@ -468,7 +515,7 @@ const ProductDetailPage = ({ params }: ProductDetailPageProps) => {
 
             <div className="text-[25px] font-bold">
               <div className="flex items-center gap-x-2">
-                {detailBook?.rating_average?.toFixed(1)}
+                {detailBook?.rating?.average?.toFixed(1)}
 
                 {[...Array(5)].map((_, i) => (
                   <Star
@@ -489,45 +536,63 @@ const ProductDetailPage = ({ params }: ProductDetailPageProps) => {
               </div>
 
               <div className="text-base font-[400] text-gray-400">
-                ({detailBook?.rating_count} đánh giá)
+                ({rating?.total_count} đánh giá)
               </div>
             </div>
 
             {/* Tổng hợp */}
             <div>
-              {[5, 4, 3, 2, 1].map((star) => (
-                <div
-                  className="flex cursor-pointer items-center gap-x-3 py-1"
-                  key={star}
-                  // onClick={() => onFilter(star)}
-                >
-                  <div className="flex w-[120px] items-center gap-1">
-                    {[...Array(star)].map((_, i) => (
-                      <Star
-                        className="text-yellow-400"
-                        fill="#FFD700"
-                        key={i}
-                        size={16}
-                      />
-                    ))}
-                  </div>
+              {[5, 4, 3, 2, 1].map((star) => {
+                const starCountMap = {
+                  1: detailBook?.rating?.count?.oneStar,
+                  2: detailBook?.rating?.count?.twoStar,
+                  3: detailBook?.rating?.count?.threeStar,
+                  4: detailBook?.rating?.count?.fourStar,
+                  5: detailBook?.rating?.count?.fiveStar,
+                };
 
-                  <div className="h-2 max-w-[100px] flex-1 overflow-hidden rounded-full bg-gray-200">
-                    <div
-                      className="size-full bg-blue-400"
-                      style={{
-                        width: `${(5 / 10) * 100}%`,
-                      }}
-                    ></div>
-                  </div>
+                const starCount = starCountMap[star as 1 | 2 | 3 | 4 | 5];
 
-                  <div className="ml-3 text-sm text-gray-600">{1} lượt</div>
-                </div>
-              ))}
+                const percentage =
+                  rating.total_count > 0
+                    ? (starCount / rating.total_count) * 100
+                    : 0;
+
+                return (
+                  <div
+                    className="flex cursor-pointer items-center gap-x-3 py-1"
+                    key={star}
+                  >
+                    <div className="flex w-[120px] items-center gap-1">
+                      {[...Array(star)].map((_, i) => (
+                        <Star
+                          className="text-yellow-400"
+                          fill="#FFD700"
+                          key={i}
+                          size={16}
+                        />
+                      ))}
+                    </div>
+
+                    <div className="h-2 max-w-[100px] flex-1 overflow-hidden rounded-full bg-gray-200">
+                      <div
+                        className="h-full bg-blue-400"
+                        style={{
+                          width: `${percentage}%`,
+                        }}
+                      ></div>
+                    </div>
+
+                    <div className="ml-3 text-sm text-gray-600">
+                      {starCount} lượt
+                    </div>
+                  </div>
+                );
+              })}
             </div>
 
             <div className="mt-3 flex flex-col gap-3 text-sm">
-              {feedback.map((item) => (
+              {listReview.map((item) => (
                 <div
                   className="rounded-md border border-gray-200 p-3"
                   key={item.id}
@@ -538,10 +603,11 @@ const ProductDetailPage = ({ params }: ProductDetailPageProps) => {
                         alt=""
                         className="object-fit h-[30px] rounded-full"
                         height={20}
-                        src="https://danviet.mediacdn.vn/296231569849192448/2023/8/26/sach-nna-ban-tieng-anh-16930541445461508724279.jpg"
+                        src={item?.created_by?.image}
                         width={30}
                       />
-                      Nguyễn Văn A
+
+                      {item?.created_by?.name}
                     </div>
 
                     <div className="my-2 flex items-center gap-1">
@@ -555,10 +621,36 @@ const ProductDetailPage = ({ params }: ProductDetailPageProps) => {
                       ))}
                     </div>
 
-                    <div>{item.content}</div>
+                    {item?.image && (
+                      <Image
+                        alt=""
+                        className="object-contain"
+                        height={200}
+                        src={item?.image}
+                        width={200}
+                      />
+                    )}
+
+                    <div className="mt-3">{item.content}</div>
+
+                    <div className="mt-3 italic text-gray-400">
+                      Đã đánh giá vào:&nbsp;
+                      {new Date(item.created_at).toLocaleDateString()}
+                    </div>
                   </div>
                 </div>
               ))}
+
+              {hasMore && (
+                <div className="text-center">
+                  <Button
+                    className="w-[200px] bg-blue-500 hover:bg-blue-500"
+                    onClick={handleLoadMore}
+                  >
+                    Xem thêm
+                  </Button>
+                </div>
+              )}
             </div>
           </div>
         </ProductContent>
