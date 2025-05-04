@@ -1,9 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { toast } from "react-toastify";
 
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 
+import { api } from "@/services/axios";
 import "swiper/css";
 import "swiper/css/effect-coverflow";
 import "swiper/css/navigation";
@@ -26,56 +29,88 @@ const images = [
 
 const BannerSlider = () => {
   const [isSwiperReady, setIsSwiperReady] = useState(false);
+  const [listArticle, setListArticle] = useState([]);
+  const router = useRouter();
+
+  const handleGetListArticle = async () => {
+    try {
+      const res = await api.get("/articles", {
+        params: {
+          get_all: true,
+        },
+      });
+
+      setListArticle(res?.data?.articles);
+    } catch (error: any) {
+      console.log(error);
+      toast.error(error?.message || "Có lỗi khi lấy danh sách bài viết");
+    }
+  };
+
+  useEffect(() => {
+    handleGetListArticle();
+  }, []);
+
+  useEffect(() => {
+    if (listArticle.length > 0) {
+      setIsSwiperReady(true);
+    }
+  }, [listArticle]);
 
   return (
     <div className="relative mx-auto w-[90%] py-10">
-      <Swiper
-        autoplay={{
-          delay: 5000,
-          disableOnInteraction: false,
-        }}
-        centeredSlides={true}
-        centerInsufficientSlides={true}
-        className="swiper_container"
-        coverflowEffect={{
-          rotate: 20,
-          stretch: 50,
-          depth: 300,
-          modifier: 1,
-          slideShadows: true,
-        }}
-        effect={"coverflow"}
-        grabCursor={true}
-        loop={true}
-        modules={[EffectCoverflow, Navigation, Autoplay]}
-        navigation={true}
-        onInit={() => setIsSwiperReady(true)}
-        pagination={{ clickable: true }}
-        slidesPerView={2}
-        spaceBetween={-30}
-        speed={1000}
-        style={{ visibility: isSwiperReady ? "visible" : "hidden" }}
-      >
-        {images.map((src, index) => (
-          <SwiperSlide className="flex items-center justify-center" key={index}>
-            <Image
-              alt={`Slide ${index + 1}`}
-              className="h-[400px] w-full rounded-xl object-cover shadow-lg"
-              height={400}
-              src={src}
-              width={800}
-            />
+      {isSwiperReady && (
+        <Swiper
+          autoplay={{
+            delay: 5000,
+            disableOnInteraction: false,
+          }}
+          centeredSlides={true}
+          centerInsufficientSlides={true}
+          className="swiper_container"
+          coverflowEffect={{
+            rotate: 20,
+            stretch: 50,
+            depth: 300,
+            modifier: 1,
+            slideShadows: true,
+          }}
+          effect={"coverflow"}
+          grabCursor={true}
+          loop={true}
+          modules={[EffectCoverflow, Navigation, Autoplay]}
+          navigation={true}
+          onInit={() => setIsSwiperReady(true)}
+          pagination={{ clickable: true }}
+          slidesPerView={2}
+          spaceBetween={-30}
+          speed={1000}
+          style={{ visibility: isSwiperReady ? "visible" : "hidden" }}
+        >
+          {listArticle &&
+            listArticle?.map((article: any, index: number) => (
+              <SwiperSlide
+                className="flex items-center justify-center"
+                key={index}
+                onClick={() => router.push(`/articles/${article?.id}`)}
+              >
+                <Image
+                  alt={`Slide ${index + 1}`}
+                  className="h-[400px] w-full rounded-xl object-cover shadow-lg"
+                  height={400}
+                  src={article?.image}
+                  width={800}
+                />
 
-            <div className="absolute bottom-0 left-0 flex h-1/2 w-full items-end rounded-b-xl bg-gradient-to-t from-black to-transparent p-4">
-              <p className="line-clamp-2 px-3 text-sm leading-relaxed text-white drop-shadow-md">
-                Đây là mô tả cho ảnh số {index + 1}. Nội dung có thể dài khoảng
-                100 chữ, giúp người dùng hiểu rõ hơn về nội dung của bức ảnh
-                trong trình chiếu.
-              </p>
-            </div>
-          </SwiperSlide>
-        ))}
-      </Swiper>
+                <div className="absolute bottom-0 left-0 flex h-1/2 w-full items-end rounded-b-xl bg-gradient-to-t from-black to-transparent p-4">
+                  <p className="line-clamp-2 px-3 text-sm leading-relaxed text-white drop-shadow-md">
+                    {article?.title}
+                  </p>
+                </div>
+              </SwiperSlide>
+            ))}
+        </Swiper>
+      )}
     </div>
   );
 };

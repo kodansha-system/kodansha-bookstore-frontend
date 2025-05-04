@@ -121,77 +121,10 @@ function DashboardPage() {
 
   return (
     <div className="flex w-full flex-col bg-gray-50 pb-5">
-      {/* <div className="absolute right-0 top-[50px] flex justify-end p-5">
-        <div className="flex w-[300px] rounded-md p-2 text-center text-sm text-gray-500">
-          <MapPin size={20} />
-          Giao đến:&nbsp;
-          <span className="text-black underline">Bắc Từ Liêm, Hà Nội</span>
-          &nbsp;?
-        </div>
-      </div> */}
-
-      {/* banner */}
       <BannerSlider />
 
-      {/* câu chào + danh mục nhanh
-      <div className="mx-[80px] rounded-lg bg-white p-5">
-        <div className="flex flex-wrap justify-center gap-x-[50px]">
-          {[1, 2, 3, 4, 5].map((_, index) => (
-            <div
-              className="flex flex-col items-center justify-center gap-1 text-[14px] text-gray-600"
-              key={index}
-            >
-              <Image
-                alt="Avatar"
-                className="size-[50px] rounded-lg object-cover"
-                height={60}
-                src="https://danviet.mediacdn.vn/296231569849192448/2023/8/26/sach-nna-ban-tieng-anh-16930541445461508724279.jpg"
-                width={50}
-              />
-              Flash sales
-            </div>
-          ))}
-        </div>
+      <FlashSaleSection />
 
-        <div className="mt-3 text-center font-roboto text-[16px] text-blue-500 drop-shadow-md dark:text-green-400">
-          <ReactTyped
-            backSpeed={50}
-            loop={true}
-            onBegin={function noRefCheck() {}}
-            onComplete={function noRefCheck() {}}
-            onDestroy={function noRefCheck() {}}
-            onLastStringBackspaced={function noRefCheck() {}}
-            onReset={function noRefCheck() {}}
-            onStart={function noRefCheck() {}}
-            onStop={function noRefCheck() {}}
-            onStringTyped={function noRefCheck() {}}
-            onTypingPaused={function noRefCheck() {}}
-            onTypingResumed={function noRefCheck() {}}
-            strings={[
-              "Chào mừng bạn đến với Shelfly! Ở đây chúng mình có sách và podcast. ",
-              "Chúc bạn một ngày tốt lành! 😍",
-            ]}
-            typedRef={function noRefCheck() {}}
-            typeSpeed={50}
-          />
-        </div>
-      </div> */}
-
-      {/* flash sales */}
-      <div className="mx-[60px] mt-3 rounded-lg bg-white p-5">
-        <FlashSaleSection />
-
-        <div className="mt-5 text-center">
-          <Button
-            className="mx-auto mt-2 block w-[200px] rounded-md border border-red-500 bg-white p-2 text-center text-base font-medium text-red-500 transition-[1000] hover:bg-red-100"
-            onClick={() => router.push("/search")}
-          >
-            Xem thêm
-          </Button>
-        </div>
-      </div>
-
-      {/* bộ lọc danh sách sản phẩm  */}
       <div className="mx-[60px] mt-3 rounded-lg bg-white p-5 pb-2">
         <div className="text-[18px] font-[500]">Tất cả sản phẩm</div>
 

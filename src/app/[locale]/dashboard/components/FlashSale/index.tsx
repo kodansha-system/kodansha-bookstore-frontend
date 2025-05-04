@@ -7,6 +7,7 @@ import { api } from "@/services/axios";
 import { ShoppingCart } from "lucide-react";
 
 import RatingStars from "@/components/shared/RatingStar";
+import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 
 export default function FlashSaleSection() {
@@ -101,8 +102,10 @@ export default function FlashSaleSection() {
     }
   };
 
+  if (!flashSale) return null;
+
   return (
-    <div>
+    <div className="mx-[60px] mt-3 rounded-lg bg-white p-5">
       <div className="mb-3 flex items-center gap-x-2">
         <div className="text-xl font-bold">🔥 Flash Sale</div>
 
@@ -188,6 +191,15 @@ export default function FlashSaleSection() {
               </div>
             </div>
           ))}
+      </div>
+
+      <div className="mt-5 text-center">
+        <Button
+          className="mx-auto mt-2 block w-[200px] rounded-md border border-red-500 bg-white p-2 text-center text-base font-medium text-red-500 transition-[1000] hover:bg-red-100"
+          onClick={() => router.push("/search")}
+        >
+          Xem thêm
+        </Button>
       </div>
     </div>
   );
