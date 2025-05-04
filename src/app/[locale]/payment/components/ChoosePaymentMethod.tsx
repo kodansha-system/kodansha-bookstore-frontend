@@ -7,7 +7,7 @@ export const ChoosePaymentMethod = ({ form }: any) => {
     {
       value: "offline",
       label: "Thanh toán khi nhận hàng",
-      image: "giaohang.png",
+      image: "/giaohang.png",
     },
     {
       value: "online",
