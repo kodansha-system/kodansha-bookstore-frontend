@@ -91,7 +91,7 @@ const DiscountSelector = ({
   }, [total.price]);
 
   useEffect(() => {
-    const selected = sortedFreeshipVouchers.find(
+    const selected = sortedFreeshipVouchers?.find(
       (v: any) => v.id === selectedFreeship,
     );
 
@@ -103,7 +103,7 @@ const DiscountSelector = ({
   }, [selectedFreeship, sortedFreeshipVouchers]);
 
   useEffect(() => {
-    const selected = sortedProductVouchers.find(
+    const selected = sortedProductVouchers?.find(
       (v: any) => v.id === selectedProductVoucher,
     );
 

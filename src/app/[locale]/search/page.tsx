@@ -62,8 +62,14 @@ const SearchPage = () => {
     keyword: keyword || undefined,
   });
 
-  const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isFetching } =
-    useBooks(filter);
+  const {
+    data,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+    isFetching,
+    isLastPage,
+  } = useBooks(filter);
 
   const allBooks = data?.pages.flatMap((page) => page.books) || [];
 
@@ -76,13 +82,25 @@ const SearchPage = () => {
   const router = useRouter();
 
   const onSubmit = (values: any) => {
-    setFilter({
-      ...filter,
-      authorId: values?.author && values?.author?.join(","),
-      categoryId: values?.category && values?.category?.join(","),
-      sortPrice: values?.sort_by,
-      ratingGte: values?.is_from_four_star ? 4 : undefined,
-    });
+    try {
+      const rawFilter = {
+        ...filter,
+        authorId: values?.author && values?.author?.join(","),
+        categoryId: values?.category && values?.category?.join(","),
+        sortPrice: values?.sort_by,
+        ratingGte: values?.is_from_four_star ? 4 : undefined,
+      };
+
+      const cleanedFilter = Object.fromEntries(
+        Object.entries(rawFilter).filter(
+          ([_, value]) => value !== undefined && value !== null && value !== "",
+        ),
+      );
+
+      setFilter(cleanedFilter);
+    } catch (e) {
+      console.log(e);
+    }
   };
 
   const handleGetListCategories = async () => {
@@ -124,20 +142,34 @@ const SearchPage = () => {
     }
   };
 
+  const handleSearchByKeyword = () => {
+    const keywordFromUrl = searchParams.get("keyword");
+
+    if (keywordFromUrl) {
+      setFilter((prev: any) => ({
+        ...prev,
+        keyword: keywordFromUrl,
+        page: 1,
+      }));
+    } else {
+      setFilter((prev: any) => {
+        delete prev.keyword;
+
+        return {
+          ...prev,
+          keyword: null,
+          page: 1,
+        };
+      });
+    }
+  };
+
   useEffect(() => {
     handleGetListCategories();
   }, []);
 
   useEffect(() => {
-    const keywordFromUrl = searchParams.get("keyword");
-
-    if (keywordFromUrl) {
-      setFilter((prev) => ({
-        ...prev,
-        keyword: keywordFromUrl,
-        page: 1,
-      }));
-    }
+    handleSearchByKeyword();
   }, [searchParams]);
 
   return (
@@ -284,32 +316,6 @@ const SearchPage = () => {
               <div className="flex flex-wrap">
                 <FormField
                   control={form.control}
-                  name="is_cheap"
-                  render={({ field }) => (
-                    <FormItem className="flex flex-row items-center space-x-3 space-y-0 rounded-md p-4">
-                      <FormControl>
-                        <Checkbox
-                          checked={field.value}
-                          onCheckedChange={field.onChange}
-                        />
-                      </FormControl>
-
-                      <div className="flex items-center gap-x-2 space-y-1 text-sm leading-none text-gray-600">
-                        <Image
-                          alt=""
-                          className="h-[16px]"
-                          height={50}
-                          src="https://salt.tikicdn.com/ts/upload/b5/aa/48/2305c5e08e536cfb840043df12818146.png"
-                          width={80}
-                        />
-                        Siêu rẻ
-                      </div>
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
                   name="is_from_four_star"
                   render={({ field }) => (
                     <FormItem className="flex flex-row items-center space-x-3 space-y-0 rounded-md p-4">
@@ -321,7 +327,7 @@ const SearchPage = () => {
                       </FormControl>
 
                       <div className="space-y-1 text-sm leading-none text-gray-600">
-                        Từ 4 sao
+                        Sản phẩm được đánh giá cao
                       </div>
                     </FormItem>
                   )}
@@ -333,6 +339,7 @@ const SearchPage = () => {
           <div className="flex justify-center pb-5">
             <Button
               className="bg-blue-400 text-white hover:bg-blue-400"
+              onClick={form.handleSubmit(onSubmit)}
               type="submit"
             >
               <SearchIcon /> Tìm kiếm
@@ -358,7 +365,9 @@ const SearchPage = () => {
                       alt="Sản phẩm"
                       className="rounded-md object-cover"
                       fill
-                      onClick={() => router.push(`/books/${item?.id}`)}
+                      onClick={() => {
+                        router.push(`/books/${item?._id}`);
+                      }}
                       src={item?.images[0]}
                     />
                   </div>
@@ -380,14 +389,14 @@ const SearchPage = () => {
                       </div>
                     </div>
 
-                    <div
-                      className="text-sm text-gray-500"
-                      onClick={() => router.push(`/books/${item?.id}`)}
-                    >
+                    <div className="text-sm text-gray-500">
                       {item?.authors[0]?.name}
                     </div>
 
-                    <div className="line-clamp-2 max-w-[180px] text-base font-medium text-gray-900">
+                    <div
+                      className="line-clamp-2 max-w-[180px] text-base font-medium text-gray-900"
+                      onClick={() => router.push(`/books/${item?._id}`)}
+                    >
                       {item?.name}
                     </div>
 
@@ -399,7 +408,7 @@ const SearchPage = () => {
 
                       <ShoppingCart
                         className="cursor-pointer hover:scale-150 hover:text-blue-500"
-                        onClick={() => handleAddToCart(item.id)}
+                        onClick={() => handleAddToCart(item._id)}
                         size={16}
                       />
                     </div>
@@ -416,14 +425,14 @@ const SearchPage = () => {
         )}
 
         <div className="mt-5 text-center">
-          <Link className="inline-block w-[200px]" href="#" passHref>
-            <div
-              className="mx-auto mt-2 block w-[200px] rounded-md border border-blue-500 p-2 text-center font-medium text-blue-500 transition-[1000] hover:bg-blue-100"
+          {!isLastPage && (
+            <Button
+              className="mx-auto mt-2 block w-[200px] rounded-md border border-blue-500 bg-white p-2 text-center font-medium text-blue-500 transition-[1000] hover:bg-blue-100"
               onClick={loadMore}
             >
               Xem thêm
-            </div>
-          </Link>
+            </Button>
+          )}
         </div>
       </div>
     </div>

@@ -10,7 +10,10 @@ const fetchCart = async (params: any) => {
 const getDetailCarts = async () => {
   const response = await api.get(`/carts/user`);
 
-  return response.data.books || [];
+  return {
+    books: response.data.books || [],
+    flash_sale_id: response?.data?.flash_sale_id || undefined,
+  };
 };
 
 export const useCarts = (params: any) => {
@@ -28,9 +31,9 @@ export const useDetailCart = () => {
 
   return {
     data:
-      responseDetailCart?.map((item: any) => {
+      responseDetailCart?.books?.map((item: any) => {
         return {
-          id: item?.book_id?.id,
+          id: item?.book_id?._id,
           name: item?.book_id?.name,
           price: item?.book_id?.price,
           discount: item?.book_id?.discount,
@@ -38,8 +41,10 @@ export const useDetailCart = () => {
           quantity: item?.quantity,
           total: item?.quantity * item?.book_id?.price,
           checked: false,
+          is_flash_sale: item?.book_id?.is_flash_sale,
         };
       }) || [],
+    flash_sale_id: responseDetailCart?.flash_sale_id,
     refetch,
   };
 };

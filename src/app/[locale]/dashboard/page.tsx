@@ -4,7 +4,6 @@ import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import Select from "react-select";
 import { toast } from "react-toastify";
-import { ReactTyped } from "react-typed";
 
 import Image from "next/image";
 import Link from "next/link";
@@ -14,23 +13,18 @@ import { useTranslations } from "next-intl";
 
 import { api } from "@/services/axios";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { MapPin, ShoppingCart } from "lucide-react";
+import { SearchIcon, ShoppingCart } from "lucide-react";
 import { z } from "zod";
 
 import BannerSlider from "@/components/shared/Banner";
 import RatingStars from "@/components/shared/RatingStar";
+import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Form, FormControl, FormField, FormItem } from "@/components/ui/form";
-import { Progress } from "@/components/ui/progress";
-import {
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-  Select as ShadcnSelect,
-} from "@/components/ui/select";
 
 import { useBooks } from "@/hooks/useBooks";
+
+import FlashSaleSection from "./components/FlashSale";
 
 const FormSchema = z.object({
   is_cheap: z.boolean().default(false).optional(),
@@ -50,7 +44,9 @@ const NoOptionsMessage = () => {
 };
 
 function DashboardPage() {
-  const { data } = useBooks({ limit: 48 });
+  const [filter, setFilter] = useState({ limit: 10 });
+  const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isFetching } =
+    useBooks(filter);
   const [listCategories, setListCategories] = useState([]);
   const [listAuthors, setListAuthors] = useState([]);
   const router = useRouter();
@@ -70,8 +66,18 @@ function DashboardPage() {
 
   const allBooks = data?.pages.flatMap((page) => page.books) || [];
 
-  function onSubmit(data: z.infer<typeof FormSchema>) {
-    console.log(data);
+  function onSubmit(values: z.infer<typeof FormSchema>) {
+    try {
+      setFilter({
+        ...filter,
+        authorId: values?.author && values?.author?.join(","),
+        categoryId: values?.category && values?.category?.join(","),
+        sortPrice: values?.sort_by,
+        ratingGte: values?.is_from_four_star ? 4 : undefined,
+      });
+    } catch (e) {
+      console.log(e);
+    }
   }
 
   const handleGetListCategories = async () => {
@@ -173,77 +179,15 @@ function DashboardPage() {
 
       {/* flash sales */}
       <div className="mx-[60px] mt-3 rounded-lg bg-white p-5">
-        <div className="text-[18px] font-medium">Flash sales</div>
-
-        <div className="mt-5 flex flex-wrap items-stretch justify-center gap-1 lg:gap-3">
-          {data &&
-            allBooks?.splice(0, 6)?.map((item: any, index: number) => (
-              <div className="flex max-w-[228px] flex-1" key={index}>
-                <div className="flex h-full flex-col rounded-lg border border-gray-200 bg-white p-3 shadow-sm transition-transform duration-1000 hover:shadow-lg">
-                  <div className="relative size-[180px]">
-                    <Image
-                      alt="Sản phẩm"
-                      className="rounded-md object-cover"
-                      fill
-                      src={item?.images[0]}
-                    />
-                  </div>
-
-                  <div className="mt-3 flex flex-1 flex-col justify-between gap-2">
-                    <div className="flex flex-col gap-2">
-                      <div
-                        className={`flex items-center gap-x-2 text-[20px] font-[500] ${item?.discount === 0 ? "text-black" : "text-red-500"}`}
-                      >
-                        <div>
-                          {new Intl.NumberFormat("vi-VN").format(item?.price)}đ
-                        </div>
-
-                        {item?.discount !== 0 && (
-                          <div className="flex items-center justify-center rounded-sm bg-gray-100 p-1 text-xs font-[400] text-black">
-                            -
-                            {(
-                              (item?.discount /
-                                (item?.price + item?.discount)) *
-                              100
-                            ).toFixed(0)}
-                            %
-                          </div>
-                        )}
-                      </div>
-
-                      <div className="text-sm text-gray-500">
-                        {item?.authors[0]?.name}
-                      </div>
-
-                      <div className="line-clamp-2 max-w-[180px] text-base font-medium text-gray-900">
-                        {item?.name}
-                      </div>
-                    </div>
-
-                    <div className="mt-1 flex flex-col gap-y-1 text-sm">
-                      <div className="relative w-full">
-                        <Progress
-                          className="h-5 bg-red-200 [&>div]:bg-red-500"
-                          value={50}
-                        />
-
-                        <span className="absolute inset-0 flex items-center justify-center text-xs font-medium text-white">
-                          Đã bán {100} / {500}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ))}
-        </div>
+        <FlashSaleSection />
 
         <div className="mt-5 text-center">
-          <Link className="inline-block w-[200px]" href="#" passHref>
-            <div className="mx-auto mt-2 block w-[200px] rounded-md border border-red-500 p-2 text-center font-medium text-red-500 transition-[1000] hover:bg-red-100">
-              Xem thêm
-            </div>
-          </Link>
+          <Button
+            className="mx-auto mt-2 block w-[200px] rounded-md border border-red-500 bg-white p-2 text-center text-base font-medium text-red-500 transition-[1000] hover:bg-red-100"
+            onClick={() => router.push("/search")}
+          >
+            Xem thêm
+          </Button>
         </div>
       </div>
 
@@ -267,7 +211,6 @@ function DashboardPage() {
                           components={{ NoOptionsMessage }}
                           isMulti
                           onChange={(selected) => {
-                            console.log(selected, "check");
                             field.onChange(
                               selected.map((option: any) => option.value),
                             );
@@ -280,8 +223,8 @@ function DashboardPage() {
                             }),
                             container: (provided) => ({
                               ...provided,
-                              minWidth: 200,
-                              maxWidth: "50%",
+                              minWidth: 300,
+                              maxWidth: 350,
                               fontSize: "14px",
                             }),
                           }}
@@ -320,8 +263,8 @@ function DashboardPage() {
                             }),
                             container: (provided) => ({
                               ...provided,
-                              minWidth: 200,
-                              maxWidth: "50%",
+                              minWidth: 300,
+                              maxWidth: 350,
                               fontSize: "14px",
                             }),
                           }}
@@ -330,6 +273,59 @@ function DashboardPage() {
                               ? field.value.includes(option.value)
                               : false,
                           )}
+                        />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="sort_by"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-row items-center gap-x-2 rounded-md pl-4 pt-4">
+                      <div className="text-sm text-gray-600">Sắp xếp theo</div>
+
+                      <FormControl>
+                        <Select
+                          components={{ NoOptionsMessage }}
+                          isClearable={true}
+                          onChange={(option) => field.onChange(option?.value)}
+                          options={[
+                            {
+                              value: "asc",
+                              label: "Giá tăng dần",
+                            },
+                            {
+                              value: "desc",
+                              label: "Giá giảm dần",
+                            },
+                          ]}
+                          placeholder="Sắp xếp theo"
+                          styles={{
+                            noOptionsMessage: (base) => ({
+                              ...base,
+                            }),
+                            container: (provided) => ({
+                              ...provided,
+                              minWidth: 300,
+                              maxWidth: 350,
+                              fontSize: "14px",
+                            }),
+                          }}
+                          value={
+                            field.value
+                              ? [
+                                  {
+                                    value: field.value,
+                                    label:
+                                      field.value === "asc"
+                                        ? "Giá tăng dần"
+                                        : "Giá giảm dần",
+                                  },
+                                ]
+                              : undefined
+                          }
                         />
                       </FormControl>
                     </FormItem>
@@ -367,32 +363,6 @@ function DashboardPage() {
 
                   <FormField
                     control={form.control}
-                    name="is_freeship_extra"
-                    render={({ field }) => (
-                      <FormItem className="flex flex-row items-center space-x-3 space-y-0 rounded-md p-4">
-                        <FormControl>
-                          <Checkbox
-                            checked={field.value}
-                            onCheckedChange={field.onChange}
-                          />
-                        </FormControl>
-
-                        <div className="flex items-center gap-x-2 space-y-1 text-sm leading-none text-gray-600">
-                          <Image
-                            alt=""
-                            className="h-[16px]"
-                            height={50}
-                            src="https://salt.tikicdn.com/ts/upload/2f/20/77/0f96cfafdf7855d5e7fe076dd4f34ce0.png"
-                            width={80}
-                          />
-                          Freeship extra
-                        </div>
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
                     name="is_from_four_star"
                     render={({ field }) => (
                       <FormItem className="flex flex-row items-center space-x-3 space-y-0 rounded-md p-4">
@@ -410,39 +380,18 @@ function DashboardPage() {
                     )}
                   />
                 </div>
-
-                <div>
-                  <FormField
-                    control={form.control}
-                    name="sort_by"
-                    render={({ field }) => (
-                      <FormItem className="flex flex-row items-center space-x-3 space-y-0 rounded-md p-4">
-                        <div className="space-y-1 text-sm leading-none text-gray-600">
-                          Sắp xếp theo
-                        </div>
-
-                        <FormControl>
-                          <ShadcnSelect
-                            onValueChange={field.onChange}
-                            value={field.value}
-                          >
-                            <SelectTrigger className="w-[180px]">
-                              <SelectValue placeholder="Chọn cách sắp xếp" />
-                            </SelectTrigger>
-
-                            <SelectContent>
-                              <SelectItem value="asc">Tăng dần</SelectItem>
-
-                              <SelectItem value="desc">Giảm dần</SelectItem>
-                            </SelectContent>
-                          </ShadcnSelect>
-                        </FormControl>
-                      </FormItem>
-                    )}
-                  />
-                </div>
               </div>
             </form>
+
+            <div className="flex justify-center pb-5">
+              <Button
+                className="bg-blue-400 text-white hover:bg-blue-400"
+                onClick={form.handleSubmit(onSubmit)}
+                type="submit"
+              >
+                <SearchIcon /> Tìm kiếm
+              </Button>
+            </div>
           </Form>
         </div>
       </div>
@@ -510,14 +459,12 @@ function DashboardPage() {
         </div>
 
         <div className="mt-5 text-center">
-          <Link className="inline-block w-[200px]" href="#" passHref>
-            <div
-              className="mx-auto mt-2 block w-[200px] rounded-md border border-blue-500 p-2 text-center font-medium text-blue-500 transition-[1000] hover:bg-blue-100"
-              onClick={() => router.push("/search")}
-            >
-              Xem thêm
-            </div>
-          </Link>
+          <Button
+            className="mx-auto mt-2 block w-[200px] rounded-md border border-blue-500 bg-white p-2 text-center text-base font-medium text-blue-500 transition-[1000] hover:bg-blue-100"
+            onClick={() => router.push("/search")}
+          >
+            Xem thêm
+          </Button>
         </div>
       </div>
     </div>

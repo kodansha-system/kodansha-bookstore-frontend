@@ -51,7 +51,11 @@ const formSchema = z.object({
   ),
 });
 const CartPage = () => {
-  const { data: dataCart, refetch: refetchCart } = useDetailCart() || [];
+  const {
+    data: dataCart,
+    flash_sale_id,
+    refetch: refetchCart,
+  } = useDetailCart() || [];
   const { setBookToBuy } = useCartStore();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const router = useRouter();
@@ -174,6 +178,9 @@ const CartPage = () => {
       const updated = memoizedDataCart.map((item: any, index: number) => ({
         ...item,
         checked: currentChecked[index]?.checked || false,
+        ...(item?.is_flash_sale && {
+          flash_sale_id,
+        }),
       }));
 
       setValue("cartItems", updated);

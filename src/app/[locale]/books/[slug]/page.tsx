@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "react-toastify";
 
@@ -103,6 +103,7 @@ const ProductDetailPage = ({ params }: ProductDetailPageProps) => {
   });
   const { setBookToBuy } = useCartStore();
   const router = useRouter();
+  const [countdown, setCountdown] = useState<any>();
 
   const handleAddToCart = async (data: any) => {
     try {
@@ -123,14 +124,36 @@ const ProductDetailPage = ({ params }: ProductDetailPageProps) => {
   };
 
   const handleBuyBook = () => {
+    const numberOfBookWantBuy = form.getValues("quantity");
+
+    if (detailBook?.in_flash_sale) {
+      setBookToBuy([
+        {
+          discount: detailBook?.discount,
+          id: detailBook?.id,
+          image: detailBook?.images[0],
+          name: detailBook?.name,
+          price:
+            detailBook?.in_flash_sale && countdown
+              ? detailBook?.flash_sale?.price
+              : detailBook?.price,
+          quantity: form.getValues("quantity"),
+          total: detailBook?.price,
+          flash_sale_id: detailBook?.flash_sale?.flash_sale_id,
+        },
+      ]);
+    }
     setBookToBuy([
       {
         discount: detailBook?.discount,
         id: detailBook?.id,
         image: detailBook?.images[0],
         name: detailBook?.name,
-        price: detailBook?.price,
-        quantity: 1,
+        price:
+          detailBook?.in_flash_sale && countdown
+            ? detailBook?.flash_sale?.price
+            : detailBook?.price,
+        quantity: form.getValues("quantity"),
         total: detailBook?.price,
       },
     ]);
@@ -138,6 +161,75 @@ const ProductDetailPage = ({ params }: ProductDetailPageProps) => {
   };
 
   const { listBookSameCategory, detailBook } = useDetailBook(params.slug);
+
+  if (!detailBook) return null;
+
+  const getActiveFlashSale = async () => {
+    try {
+      const response = await api.get("/flashsales/active");
+
+      return response;
+    } catch (error) {
+      console.error("Lỗi khi gọi flash sale:", error);
+
+      return null;
+    }
+  };
+
+  // eslint-disable-next-line react-hooks/rules-of-hooks
+  useEffect(() => {
+    const fetchAndStartCountdown = async () => {
+      const res = await getActiveFlashSale();
+
+      if (!res?.data) return;
+
+      const endTime = res.data.end_time;
+
+      if (endTime && !isNaN(new Date(endTime).getTime())) {
+        startCountdown(endTime);
+      } else {
+        console.warn("⚠️ end_time không hợp lệ:", endTime);
+      }
+    };
+
+    fetchAndStartCountdown();
+  }, [params?.slug]);
+
+  const startCountdown = (endTimeStr: string) => {
+    const endTime = new Date(endTimeStr).getTime();
+
+    const interval = setInterval(() => {
+      const now = new Date().getTime();
+      const diff = endTime - now;
+
+      if (diff <= 0) {
+        toast.info("Flash sale đã kết thúc");
+        clearInterval(interval);
+        window.location.reload();
+
+        return;
+      }
+
+      const seconds = String(Math.floor((diff % (1000 * 60)) / 1000)).padStart(
+        2,
+        "0",
+      );
+      const minutes = String(Math.floor((diff / (1000 * 60)) % 60)).padStart(
+        2,
+        "0",
+      );
+      const hours = String(Math.floor((diff / (1000 * 60 * 60)) % 24)).padStart(
+        2,
+        "0",
+      );
+
+      setCountdown({
+        hours,
+        minutes,
+        seconds,
+      });
+    }, 1000);
+  };
 
   return (
     <ProductContainer>
@@ -183,25 +275,62 @@ const ProductDetailPage = ({ params }: ProductDetailPageProps) => {
               </div>
 
               <div className="my-3 flex items-center">
-                <div className="text-[28px] font-semibold text-red-500">
-                  {detailBook?.price
-                    ? new Intl.NumberFormat("vi-VN").format(detailBook?.price)
-                    : 0}
-                  đ
-                </div>
+                {detailBook?.in_flash_sale ? (
+                  <div className="text-[28px] font-semibold text-red-500">
+                    {detailBook?.flash_sale?.price
+                      ? new Intl.NumberFormat("vi-VN").format(
+                          detailBook?.flash_sale?.price,
+                        )
+                      : 0}
+                    đ
+                  </div>
+                ) : (
+                  <>
+                    <div className="text-[28px] font-semibold text-red-500">
+                      {detailBook?.price
+                        ? new Intl.NumberFormat("vi-VN").format(
+                            detailBook?.price,
+                          )
+                        : 0}
+                      đ
+                    </div>
 
-                <div className="ml-2 rounded-sm bg-gray-200 px-2 py-1 text-xs text-black">
-                  -
-                  {detailBook?.price
-                    ? (
-                        (detailBook?.discount /
-                          (detailBook?.price + detailBook?.discount)) *
-                        100
-                      )?.toFixed(0)
-                    : 0}
-                  %
-                </div>
+                    <div className="ml-2 rounded-sm bg-gray-200 px-2 py-1 text-xs text-black">
+                      -
+                      {detailBook?.price
+                        ? (
+                            (detailBook?.discount /
+                              (detailBook?.price + detailBook?.discount)) *
+                            100
+                          )?.toFixed(0)
+                        : 0}
+                      %
+                    </div>
+                  </>
+                )}
               </div>
+
+              {detailBook?.in_flash_sale && (
+                <div className="my-3 flex items-center gap-2">
+                  <span>Giá sẽ cập nhật sau:</span>
+
+                  <div className="rounded-md bg-red-500 p-1 px-2 text-center font-bold text-white">
+                    {countdown?.hours}
+                  </div>
+
+                  <div className="text-xl font-bold text-gray-400">:</div>
+
+                  <div className="rounded-md bg-red-500 p-1 px-2 text-center font-bold text-white">
+                    {countdown?.minutes}
+                  </div>
+
+                  <div className="text-xl font-bold text-gray-400">:</div>
+
+                  <div className="rounded-md bg-red-500 p-1 px-2 text-center font-bold text-white">
+                    {countdown?.seconds}
+                  </div>
+                </div>
+              )}
 
               <div className="my-2 flex items-center gap-2">
                 Số lượng:

@@ -10,11 +10,29 @@ const fetchBooks = async (params: any) => {
 const getDetailBooks = async (id: string) => {
   const response = await api.get(`/books/${id}`);
 
-  return response.data;
+  const checkIsBookInFlashSale = await api.get(`/flashsales/book/${id}`);
+
+  const inFlashSale = checkIsBookInFlashSale.data?.in_flash_sale;
+
+  if (inFlashSale) {
+    return {
+      ...response.data,
+      in_flash_sale: inFlashSale,
+      flash_sale: {
+        ...checkIsBookInFlashSale.data,
+        end_time: checkIsBookInFlashSale.data.end_time,
+      },
+    };
+  }
+
+  return {
+    ...response.data,
+    in_flash_sale: inFlashSale,
+  };
 };
 
 export const useBooks = (params: any) => {
-  return useInfiniteQuery({
+  const query = useInfiniteQuery({
     queryKey: ["books", params],
     queryFn: ({ pageParam = 1 }) => fetchBooks({ ...params, page: pageParam }),
     initialPageParam: 1,
@@ -24,6 +42,11 @@ export const useBooks = (params: any) => {
       return currentPage < totalPages ? currentPage + 1 : undefined;
     },
   });
+
+  return {
+    ...query,
+    isLastPage: !query.hasNextPage,
+  };
 };
 
 export const useDetailBook = (id: string) => {

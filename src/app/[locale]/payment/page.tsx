@@ -94,9 +94,19 @@ const Page = () => {
   };
 
   const onSubmit = async (data: any) => {
+    const flashSaleItemIndex = books_order?.findIndex(
+      (item: any) => item?.is_flash_sale,
+    );
+
+    const flashSaleId =
+      flashSaleItemIndex !== -1
+        ? books_order?.[flashSaleItemIndex]?.flash_sale_id
+        : undefined;
+
     try {
       setSubmitting(true);
       let dataOrder: any = {
+        flash_sale_id: flashSaleId,
         delivery_method: data.deliveryMethod,
         shop_id: selectedShopId,
         total_to_pay: totalToPay,
@@ -107,10 +117,11 @@ const Page = () => {
             book_id: item.id,
             price: item.price,
             quantity: Number(item.quantity),
+            is_flash_sale: item.is_flash_sale,
           };
         }),
         payment_method: data.paymentMethod,
-        vouchers: [data.productVoucher],
+        vouchers: data.productVoucher ? [data.productVoucher] : null,
       };
 
       if (data?.deliveryMethod === DeliveryMethod.HOME_DELIVERY) {
@@ -158,9 +169,9 @@ const Page = () => {
       setSubmitting(false);
       // router.push("/my-order");
       // }
-    } catch (error) {
+    } catch (error: any) {
       setSubmitting(false);
-      toast.error("Tạo đơn hàng không thành công!");
+      toast.error(error?.message || "Tạo đơn hàng không thành công!");
       console.log(error);
     }
   };

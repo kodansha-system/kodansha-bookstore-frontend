@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from "react";
 
+import { useRouter } from "next/navigation";
+
 import { api } from "@/services/axios";
 import { apiShipping } from "@/services/shippingApi";
 
@@ -19,6 +21,7 @@ export const ChooseShippingMethod = ({
 }: any) => {
   const [isPickup, setIsPickup] = useState(false);
   const [shopsHaveBooks, setShopsHaveBooks] = useState<any>([]);
+  const router = useRouter();
 
   const handleGetListCarriers = async () => {
     const res = await apiShipping.post("/rates", {
@@ -190,7 +193,10 @@ export const ChooseShippingMethod = ({
                     Số điện thoại: {data?.shop?.phone}
                   </div>
 
-                  <div className="mt-1 cursor-pointer text-sm italic text-blue-500">
+                  <div
+                    className="mt-1 cursor-pointer text-sm italic text-blue-500"
+                    onClick={() => router.push(`/shops/${data?.shop_id}`)}
+                  >
                     Chỉ đường
                   </div>
                 </div>

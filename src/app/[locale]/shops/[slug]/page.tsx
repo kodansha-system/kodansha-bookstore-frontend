@@ -25,13 +25,12 @@ const DetailShop = ({ params }: { params: { slug: string } }) => {
   return (
     <div className="m-auto w-[90%] rounded-md border bg-white p-5">
       <div>
-        <Image
-          alt=""
-          className="h-[200px] object-cover"
-          height={200}
-          src={detailShop?.image}
-          width={900}
-        />
+        <iframe
+          height="450"
+          loading="lazy"
+          src={detailShop?.map}
+          width={"100%"}
+        ></iframe>
       </div>
 
       <div className="mt-3">{detailShop?.address}</div>

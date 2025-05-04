@@ -92,8 +92,6 @@ api.interceptors.response.use(
       return Promise.reject("404: Not found");
     }
 
-    return Promise.reject(
-      error?.response?.data?.error || error?.response?.data?.errors,
-    );
+    return Promise.reject(error?.response?.data);
   },
 );
