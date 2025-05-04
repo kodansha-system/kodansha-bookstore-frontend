@@ -18,6 +18,7 @@ import dayjs from "dayjs";
 
 import BookTable from "../../payment/components/BookTable";
 import OrderHistory from "../components/OrderHistory";
+import { ReviewProductDialog } from "../components/Review";
 
 interface IOrder {
   user_id: {
@@ -162,14 +163,48 @@ const Page = ({ params }: DetailOrderPageProps) => {
     }
   }, [dataOrder]);
 
+  const [productId, setProductId] = useState<string>();
+  const [openReviewDialog, setOpenReviewDialog] = useState<boolean>(false);
+
+  const handleReviewProduct = (id: string) => {
+    setProductId(id);
+    setOpenReviewDialog(true);
+  };
+
+  const [reviewedBookIds, setReviewedBookIds] = useState<string[]>([]);
+
+  const fetchReviews = async () => {
+    if (!dataOrder?.order_status || !dataOrder?.id) return;
+
+    const res = await api.get(`/reviews?order_id=${dataOrder?.id}`);
+
+    if (res?.data) {
+      const ids = res.data.reviews?.map((r: any) => r.book_id);
+
+      setReviewedBookIds(ids);
+    }
+  };
+
+  useEffect(() => {
+    fetchReviews();
+  }, [dataOrder]);
+
   return (
     <>
       <div className="mx-[100px] pb-3 text-center text-[20px] font-medium">
         Chi tiết đơn hàng
       </div>
 
+      <ReviewProductDialog
+        handleGetDetailOrder={handleGetDetailOrder}
+        open={openReviewDialog}
+        orderId={params.id}
+        productId={productId}
+        setOpen={setOpenReviewDialog}
+      />
+
       <div>
-        <div className="rounded-md px-[100px]">
+        <div className="rounded-md px-[50px] md:px-[100px]">
           <div className="flex justify-between">
             <div className="flex w-full flex-col gap-3 rounded-md py-5 pb-[30px] text-[15px]">
               <div>
@@ -243,12 +278,19 @@ const Page = ({ params }: DetailOrderPageProps) => {
             </div>
           </div>
 
-          <div className="flex justify-between gap-x-5">
-            <div className="flex w-full justify-center rounded-md border bg-white p-5 pb-[30px] text-[15px]">
-              <BookTable books={dataOrder?.books as any} />
+          <div className="flex flex-col gap-5 md:flex-row md:justify-between">
+            <div className="flex w-full justify-center overflow-auto rounded-md border bg-white p-5 pb-[30px] text-[15px] md:w-[900px]">
+              <BookTable
+                books={dataOrder?.books as any}
+                isOrderCompleted={
+                  dataOrder?.order_status === OrderStatus.Completed
+                }
+                onReviewProduct={handleReviewProduct}
+                reviewedBookIds={reviewedBookIds}
+              />
             </div>
 
-            <div className="flex min-w-[400px] justify-center rounded-md pb-[30px] text-[15px]">
+            <div className="flex w-full justify-center rounded-md pb-[30px] text-[15px] md:min-w-[400px] md:max-w-[400px]">
               <OrderHistory
                 events={dataOrder?.tracking_order?.map((item: any) => {
                   return {

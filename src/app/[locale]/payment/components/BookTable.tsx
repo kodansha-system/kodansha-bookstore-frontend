@@ -1,7 +1,7 @@
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 
-import { Star } from "lucide-react";
-
+import { Button } from "@/components/ui/button";
 import {
   Table,
   TableBody,
@@ -11,7 +11,19 @@ import {
   TableRow,
 } from "@/components/ui/table";
 
-const BookTable = ({ books }: { books: any[] }) => {
+const BookTable = ({
+  books,
+  onReviewProduct,
+  isOrderCompleted = false,
+  reviewedBookIds,
+}: {
+  books: any[];
+  onReviewProduct?: any;
+  isOrderCompleted?: boolean;
+  reviewedBookIds?: any;
+}) => {
+  const router = useRouter();
+
   return (
     <div className="mt-5 flex w-full justify-center">
       <Table className="flex-col">
@@ -26,6 +38,8 @@ const BookTable = ({ books }: { books: any[] }) => {
             <TableHead>Số lượng</TableHead>
 
             <TableHead>Thành tiền</TableHead>
+
+            {isOrderCompleted && <TableHead>Đánh giá</TableHead>}
           </TableRow>
         </TableHeader>
 
@@ -35,15 +49,18 @@ const BookTable = ({ books }: { books: any[] }) => {
               <TableCell>
                 <Image
                   alt=""
-                  className="h-[100px] w-[80px] rounded-md border object-cover p-1"
+                  className="h-[100px] min-w-[80px] rounded-md border object-cover p-1"
                   height={100}
                   src={item?.image || item?.book_id?.images?.[0]}
                   width={80}
                 />
               </TableCell>
 
-              <TableCell className="max-w-[200px] break-words">
-                <div className="line-clamp-2 text-gray-900">
+              <TableCell className="min-w-[200px] break-words">
+                <div
+                  className="line-clamp-2 text-gray-900"
+                  onClick={() => router.push(`/books/${item.book_id.id}`)}
+                >
                   {item.name || item?.book_id?.name}
                 </div>
               </TableCell>
@@ -59,6 +76,18 @@ const BookTable = ({ books }: { books: any[] }) => {
               <TableCell className="font-medium text-red-500">
                 {(item.quantity * item.price).toLocaleString()}đ
               </TableCell>
+
+              {reviewedBookIds && isOrderCompleted && (
+                <TableCell className="font-medium text-red-500">
+                  {!reviewedBookIds.includes(item?.book_id?.id) ? (
+                    <Button onClick={() => onReviewProduct(item?.book_id?.id)}>
+                      Đánh giá
+                    </Button>
+                  ) : (
+                    <span className="text-sm text-gray-500">Đã đánh giá</span>
+                  )}
+                </TableCell>
+              )}
             </TableRow>
           ))}
         </TableBody>

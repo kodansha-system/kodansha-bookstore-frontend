@@ -315,7 +315,7 @@ const ProductDetailPage = ({ params }: ProductDetailPageProps) => {
                 ))}
 
                 <span className="text-sm text-gray-500">
-                  ({rating.total_count}
+                  ({rating?.total_count || 0}
                   &nbsp;lượt đánh giá ) | Đã bán:&nbsp;
                   {detailBook?.total_sold}
                 </span>
@@ -511,21 +511,19 @@ const ProductDetailPage = ({ params }: ProductDetailPageProps) => {
           </div>
 
           <div className="rounded-lg border border-gray-200 bg-white p-5">
-            <div className="mb-3 text-base font-medium">Đánh giá sản phẩm</div>
-
             <div className="text-[25px] font-bold">
               <div className="flex items-center gap-x-2">
-                {detailBook?.rating?.average?.toFixed(1)}
+                {detailBook?.rating?.average?.toFixed(1) || 0}
 
                 {[...Array(5)].map((_, i) => (
                   <Star
                     color={
-                      i < Math.floor(detailBook?.rating_average)
+                      i < Math.floor(detailBook?.rating?.average || 0)
                         ? "#FFD700"
                         : "#C0C0C0"
                     }
                     fill={
-                      i < Math.floor(detailBook?.rating_average)
+                      i < Math.floor(detailBook?.rating?.average || 0)
                         ? "#FFD700"
                         : "#C0C0C0"
                     }
@@ -536,7 +534,7 @@ const ProductDetailPage = ({ params }: ProductDetailPageProps) => {
               </div>
 
               <div className="text-base font-[400] text-gray-400">
-                ({rating?.total_count} đánh giá)
+                ({rating?.total_count || 0} đánh giá)
               </div>
             </div>
 
@@ -544,17 +542,17 @@ const ProductDetailPage = ({ params }: ProductDetailPageProps) => {
             <div>
               {[5, 4, 3, 2, 1].map((star) => {
                 const starCountMap = {
-                  1: detailBook?.rating?.count?.oneStar,
-                  2: detailBook?.rating?.count?.twoStar,
-                  3: detailBook?.rating?.count?.threeStar,
-                  4: detailBook?.rating?.count?.fourStar,
-                  5: detailBook?.rating?.count?.fiveStar,
+                  1: detailBook?.rating?.count?.oneStar || 0,
+                  2: detailBook?.rating?.count?.twoStar || 0,
+                  3: detailBook?.rating?.count?.threeStar || 0,
+                  4: detailBook?.rating?.count?.fourStar || 0,
+                  5: detailBook?.rating?.count?.fiveStar || 0,
                 };
 
                 const starCount = starCountMap[star as 1 | 2 | 3 | 4 | 5];
 
                 const percentage =
-                  rating.total_count > 0
+                  rating?.total_count > 0
                     ? (starCount / rating.total_count) * 100
                     : 0;
 
