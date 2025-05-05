@@ -24,7 +24,16 @@ import { Form, FormControl, FormField, FormItem } from "@/components/ui/form";
 
 import { useBooks } from "@/hooks/useBooks";
 
+import BookSection from "./components/BookSection";
 import FlashSaleSection from "./components/FlashSale";
+
+interface FilterState {
+  limit: number;
+  authorId?: string;
+  categoryId?: string;
+  sortPrice?: string;
+  ratingGte?: number;
+}
 
 const FormSchema = z.object({
   is_cheap: z.boolean().default(false).optional(),
@@ -44,12 +53,14 @@ const NoOptionsMessage = () => {
 };
 
 function DashboardPage() {
-  const [filter, setFilter] = useState({ limit: 10 });
+  const [filter, setFilter] = useState<FilterState>({ limit: 10 });
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isFetching } =
     useBooks(filter);
   const [listCategories, setListCategories] = useState([]);
   const [listAuthors, setListAuthors] = useState([]);
   const router = useRouter();
+  const [listCategoriesShowOnDashboard, setListCategoriesShowOnDashboard] =
+    useState<any>([]);
 
   const t = useTranslations("Home");
   const form = useForm<z.infer<typeof FormSchema>>({
@@ -83,6 +94,7 @@ function DashboardPage() {
   const handleGetListCategories = async () => {
     const res = await api.get("/categories");
     const res2 = await api.get("/authors");
+    const res3 = await api.get("/categories/show-on-dashboard");
 
     setListCategories(
       res?.data?.categories?.map((item: any) => {
@@ -95,6 +107,8 @@ function DashboardPage() {
         return { value: item.id, label: item.name };
       }),
     );
+
+    setListCategoriesShowOnDashboard(res3?.data);
   };
 
   const handleAddToCart = async (id: string) => {
@@ -124,6 +138,17 @@ function DashboardPage() {
       <BannerSlider />
 
       <FlashSaleSection />
+
+      {listCategoriesShowOnDashboard &&
+        listCategoriesShowOnDashboard?.map((item: any) => {
+          return (
+            <BookSection
+              categoryId={item?.id}
+              key={item?.id}
+              title={item?.name}
+            />
+          );
+        })}
 
       <div className="mx-[60px] mt-3 rounded-lg bg-white p-5 pb-2">
         <div className="text-[18px] font-[500]">Tất cả sản phẩm</div>
