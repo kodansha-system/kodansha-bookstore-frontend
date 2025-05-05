@@ -12,6 +12,7 @@ import {
   PAY_METHODS,
   PaymentMethodText,
   PaymentStatus,
+  PaymentStatusText,
 } from "@/services/constants";
 import { useAuthStore } from "@/store/authStore";
 import dayjs from "dayjs";
@@ -220,6 +221,8 @@ const Page = ({ params }: DetailOrderPageProps) => {
               <div>
                 Phương thức thanh toán:&nbsp;
                 {PaymentMethodText[dataOrder?.payment_method as PAY_METHODS]}
+                {dataOrder?.payment_method === PAY_METHODS.ONLINE &&
+                  ` (${PaymentStatusText[dataOrder?.payment_status as PaymentStatus]})`}
               </div>
 
               {dataOrder?.note && (

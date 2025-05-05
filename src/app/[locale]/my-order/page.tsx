@@ -14,6 +14,7 @@ import dayjs from "dayjs";
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
+import CancelOrderDialog from "./components/CancelOrderButton";
 import ProductCard from "./components/ProductCard";
 
 enum TabEnum {
@@ -25,7 +26,7 @@ enum TabEnum {
 }
 const tabs = [
   { value: TabEnum.ALL, label: "Tất cả đơn" },
-  { value: TabEnum.IN_PROGRESS, label: "Đang xử lý" },
+  { value: TabEnum.IN_PROGRESS, label: "Chờ xác nhận" },
   { value: TabEnum.SHIPPING, label: "Đang vận chuyển" },
   { value: TabEnum.DELIVERED, label: "Đã giao" },
   { value: TabEnum.CANCELED, label: "Đã huỷ" },
@@ -42,7 +43,7 @@ const Page = () => {
       case TabEnum.ALL:
         return [];
       case TabEnum.IN_PROGRESS:
-        return [OrderStatus.New, OrderStatus.WaitingPickup];
+        return [OrderStatus.New];
       case TabEnum.SHIPPING:
         return [
           OrderStatus.PickingUp,
@@ -108,19 +109,6 @@ const Page = () => {
             ))}
           </TabsList>
 
-          {/* <form className="mt-2">
-            <div className="mx-auto mt-4 flex items-center justify-center gap-3">
-              Tìm kiếm:
-              <Input
-                className="h-[40px] w-[300px]"
-                placeholder="06/03/2024, Nguyễn Nhật Ánh, ..."
-              />
-              <Button className="bg-blue-500 hover:bg-blue-400">
-                Xác nhận
-              </Button>
-            </div>
-          </form> */}
-
           {tabs.map((tab) => (
             <TabsContent key={tab.value} value={tab.value}>
               {listOrder &&
@@ -130,9 +118,11 @@ const Page = () => {
                     <div
                       className="mt-5 rounded-md border-2 p-5 px-6"
                       key={index}
-                      onClick={() => handleViewDetailOrder(item?.id)}
                     >
-                      <div className="flex justify-between font-medium">
+                      <div
+                        className="flex justify-between font-medium"
+                        onClick={() => handleViewDetailOrder(item?.id)}
+                      >
                         <div className="pb-3 text-[16px]">
                           Ngày đặt hàng:&nbsp;
                           <span>
@@ -156,13 +146,20 @@ const Page = () => {
                         ))}
                       </div>
 
-                      <div className="mt-4 flex justify-end border-t pt-3 text-sm">
+                      <div className="mt-4 flex items-center justify-between border-t pt-3 text-sm">
                         <div>
                           Tổng đơn:&nbsp;
                           <span className="text-base font-medium text-red-500">
                             {item?.total_to_pay.toLocaleString()}đ
                           </span>
                         </div>
+
+                        {item?.order_status === OrderStatus.New && (
+                          <CancelOrderDialog
+                            orderId={item?.id}
+                            refetch={handleGetListOrder}
+                          />
+                        )}
                       </div>
                     </div>
                   );

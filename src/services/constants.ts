@@ -44,16 +44,23 @@ export const PaymentMethodText: Record<PAY_METHODS, string> = {
 
 export enum PaymentStatus {
   PENDING = "pending",
-  SUCCESS = "success",
+  SUCCESS = "paid",
   FAILED = "failed",
 }
+
+export const PaymentStatusText: Record<PaymentStatus, string> = {
+  [PaymentStatus.PENDING]: "Chờ thanh toán",
+  [PaymentStatus.SUCCESS]: "Đã thanh toán",
+  [PaymentStatus.FAILED]: "Chưa thanh toán / Thanh toán lỗi",
+};
 
 export const DATE_FORMAT = {
   DAY_AND_TIME: "DD/MM/YYYY HH:mm:ss",
 };
 
 export enum OrderStatus {
-  New = 900,
+  New = 1,
+  Verified = 900,
   WaitingPickup = 901,
   PickingUp = 902,
   PickedUp = 903,
@@ -75,6 +82,7 @@ export enum OrderStatus {
 
 export const OrderStatusText: Record<OrderStatus, string> = {
   [OrderStatus.New]: "Đơn mới",
+  [OrderStatus.Verified]: "Đã xác minh",
   [OrderStatus.WaitingPickup]: "Chờ lấy hàng",
   [OrderStatus.PickingUp]: "Lấy hàng",
   [OrderStatus.PickedUp]: "Đã lấy hàng",
