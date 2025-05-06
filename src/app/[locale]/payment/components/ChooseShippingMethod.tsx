@@ -5,7 +5,9 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
 import { api } from "@/services/axios";
+import { estimateParcelDimensions } from "@/services/constants";
 import { apiShipping } from "@/services/shippingApi";
+import { useCartStore } from "@/store/cartStore";
 
 export const ChooseShippingMethod = ({
   form,
@@ -22,6 +24,7 @@ export const ChooseShippingMethod = ({
   const [isPickup, setIsPickup] = useState(false);
   const [shopsHaveBooks, setShopsHaveBooks] = useState<any>([]);
   const router = useRouter();
+  const { books_order } = useCartStore();
 
   const handleGetListCarriers = async () => {
     const res = await apiShipping.post("/rates", {
@@ -35,12 +38,10 @@ export const ChooseShippingMethod = ({
           district: address?.district,
         },
         parcel: {
-          cod: total.price - total.discount,
-          amount: total.price - total.discount,
-          width: 20,
-          height: 20,
-          length: 20,
-          weight: 3000,
+          width: estimateParcelDimensions(books_order).width,
+          height: estimateParcelDimensions(books_order).height,
+          length: estimateParcelDimensions(books_order).length,
+          weight: estimateParcelDimensions(books_order).weight,
         },
       },
     });

@@ -7,7 +7,7 @@ import { toast } from "react-toastify";
 import { useRouter } from "next/navigation";
 
 import { api } from "@/services/axios";
-import { DeliveryMethod } from "@/services/constants";
+import { DeliveryMethod, estimateParcelDimensions } from "@/services/constants";
 import { apiShipping } from "@/services/shippingApi";
 import { useAuthStore } from "@/store/authStore";
 import { useCartStore } from "@/store/cartStore";
@@ -118,6 +118,10 @@ const Page = () => {
             price: item.price,
             quantity: Number(item.quantity),
             is_flash_sale: item.is_flash_sale || false,
+            width: item.width,
+            height: item.height,
+            length: item.length,
+            weight: item.weight,
           };
         }),
         payment_method: data.paymentMethod,
@@ -130,45 +134,39 @@ const Page = () => {
           delivery_address: {
             phone_number: address?.phone_number || user.phone,
             customer_name: address?.customer_name || user.name,
+            city: address?.province,
+            district: address?.district,
+            ward: address?.ward,
+            street: address?.detail,
             full_address: address?.full_address || address?.fullAddress,
+          },
+          parcel: {
+            cod: totalToPay,
+            amount: totalToPay,
+            width: estimateParcelDimensions(books_order).width,
+            height: estimateParcelDimensions(books_order).height,
+            length: estimateParcelDimensions(books_order).length,
+            weight: estimateParcelDimensions(books_order).weight,
+          },
+          carrier: {
+            id: data.shippingMethod,
+            name: selectedShippingMethod.name,
+            fee: selectedShippingMethod.price,
           },
         };
       }
-      // const resCreateShipment: any = await handleCreateShipment(data);
-
-      // if (resCreateShipment) {
-      //   const dataOrder = {
-      //     books: books_order?.map((item: any) => {
-      //       return {
-      //         book_id: item.id,
-      //         price: item.price,
-      //         quantity: Number(item.quantity),
-      //       };
-      //     }),
-      //     total_to_pay: 1770667,
-      //     total_price: total.price,
-      //     discount: total.discount,
-      //     carrier: {
-      //       id: selectedShippingMethod.id,
-      //       name: selectedShippingMethod.name,
-      //       fee: selectedShippingMethod.price,
-      //       order_code: resCreateShipment?.id,
-      //     },
-      //     paymethod: data.paymentMethod,
-      //     vouchers: [data.productVoucher, data.freeshipVoucher],
-      //     address: {
-      //       name: user?.name,
-      //       phone: user?.phone || "09999999",
-      //     },
-      //   };
 
       const res = await api.post("/orders", dataOrder);
 
       toast.success("Tạo đơn hàng thành công!");
 
+      if (res?.data?.order?.payment_link) {
+        router.push(res?.data?.order?.payment_link);
+      } else {
+        router.push("/my-order");
+      }
+
       setSubmitting(false);
-      // router.push("/my-order");
-      // }
     } catch (error: any) {
       setSubmitting(false);
       toast.error(error?.message || "Tạo đơn hàng không thành công!");

@@ -106,3 +106,27 @@ export enum DeliveryMethod {
   STORE_PICKUP = "store_pickup",
   HOME_DELIVERY = "home_delivery",
 }
+
+export const estimateParcelDimensions = (books_order: any) => {
+  const cartonPadding = 2;
+  const cartonWeight = 100;
+
+  let totalWeight = 0;
+  let totalLength = 0;
+  let maxWidth = 0;
+  let maxHeight = 0;
+
+  for (const book of books_order) {
+    totalWeight += book.weight * book.quantity;
+    totalLength += book.length * book.quantity;
+    maxWidth = Math.max(maxWidth, book.width);
+    maxHeight = Math.max(maxHeight, book.height);
+  }
+
+  return {
+    width: (maxWidth + 2 * cartonPadding).toString(),
+    height: (maxHeight + 2 * cartonPadding).toString(),
+    length: (totalLength + 2 * cartonPadding).toString(),
+    weight: (totalWeight + cartonWeight).toString(),
+  };
+};

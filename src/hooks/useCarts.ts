@@ -42,6 +42,10 @@ export const useDetailCart = () => {
           total: item?.quantity * item?.book_id?.price,
           checked: false,
           is_flash_sale: item?.book_id?.is_flash_sale,
+          weight: item?.book_id?.weight,
+          width: item?.book_id?.width,
+          height: item?.book_id?.height,
+          length: item?.book_id?.length,
         };
       }) || [],
     flash_sale_id: responseDetailCart?.flash_sale_id,

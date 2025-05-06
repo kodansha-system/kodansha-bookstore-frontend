@@ -2,6 +2,7 @@
 
 import React, { useEffect, useMemo, useState } from "react";
 
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 
 import { api } from "@/services/axios";
@@ -60,6 +61,7 @@ interface IOrder {
   order_status: number;
   vouchers: string[];
   payment_method: string;
+  payment_link: string;
   payment_status: PaymentStatus;
   note: string;
   delivery_address: any;
@@ -209,25 +211,49 @@ const Page = ({ params }: DetailOrderPageProps) => {
           <div className="flex justify-between">
             <div className="flex w-full flex-col gap-3 rounded-md py-5 pb-[30px] text-[15px]">
               <div>
-                Tên người nhận: {dataOrder?.delivery_address?.customer_name}
+                <span className="font-medium">Tên người nhận: </span>
+
+                {dataOrder?.delivery_address?.customer_name}
               </div>
 
               <div>
-                Số điện thoại: {dataOrder?.delivery_address?.phone_number}
+                <span className="font-medium">Số điện thoại: </span>
+
+                {dataOrder?.delivery_address?.phone_number}
               </div>
 
-              <div>Địa chỉ: {dataOrder?.delivery_address?.full_address}</div>
+              <div>
+                <span className="font-medium">Địa chỉ: </span>
+
+                {dataOrder?.delivery_address?.full_address}
+              </div>
 
               <div>
-                Phương thức thanh toán:&nbsp;
+                <span className="font-medium">Phương thức thanh toán: </span>
                 {PaymentMethodText[dataOrder?.payment_method as PAY_METHODS]}
-                {dataOrder?.payment_method === PAY_METHODS.ONLINE &&
-                  ` (${PaymentStatusText[dataOrder?.payment_status as PaymentStatus]})`}
+                &nbsp;
+                {`(${
+                  PaymentStatusText[dataOrder?.payment_status as PaymentStatus]
+                })`}
               </div>
+
+              {paymentTimeLeft &&
+                dataOrder?.payment_status !== PaymentStatus.SUCCESS && (
+                  <div>
+                    <Link
+                      className="font-medium text-blue-400 underline"
+                      href={String(dataOrder?.payment_link)}
+                      target="_blank"
+                    >
+                      Thanh toán ngay
+                    </Link>
+                  </div>
+                )}
 
               {dataOrder?.note && (
                 <div>
-                  Ghi chú:&nbsp;
+                  <span className="font-medium">Ghi chú: </span>
+
                   {dataOrder?.note}
                 </div>
               )}
@@ -236,7 +262,10 @@ const Page = ({ params }: DetailOrderPageProps) => {
                 dataOrder?.order_status === OrderStatus.New &&
                 paymentTimeLeft && (
                   <div>
-                    Thời gian còn lại để thanh toán:&nbsp;
+                    <span className="font-medium">
+                      Thời gian còn lại để thanh toán:&nbsp;
+                    </span>
+
                     <span className="italic text-red-500">{`${paymentTimeLeft?.minutes} phút ${paymentTimeLeft?.seconds} giây`}</span>
                   </div>
                 )}
@@ -244,26 +273,34 @@ const Page = ({ params }: DetailOrderPageProps) => {
 
             <div className="flex w-full flex-col gap-3 rounded-md p-5 pb-[30px] text-[15px]">
               {dataOrder?.carrier?.name && (
-                <div>Vận chuyển bởi: {dataOrder?.carrier?.name}</div>
+                <div>
+                  <span className="font-medium">Vận chuyển bởi:&nbsp;</span>{" "}
+                  {dataOrder?.carrier?.name}
+                </div>
               )}
 
               <div>
-                Tổng tiền:&nbsp;
+                <span className="font-medium">Tổng tiền:&nbsp;</span>
+
                 <span className="font-bold text-red-500">
                   {dataOrder?.total_to_pay?.toLocaleString()}
                 </span>
               </div>
 
               <div>
-                Trạng thái:&nbsp;
+                <span className="font-medium">Trạng thái:&nbsp;</span>
+
                 {OrderStatusText[dataOrder?.order_status as OrderStatus]}
               </div>
 
               {dataOrder?.order_status !== OrderStatus.Completed &&
                 dataOrder?.order_status !== OrderStatus.Cancelled &&
                 timeLeft && (
-                  <div className="">
-                    Thời gian còn lại để đến cửa hàng lấy sách:&nbsp;
+                  <div>
+                    <span className="font-medium">
+                      Thời gian còn lại để đến cửa hàng lấy sách:&nbsp;
+                    </span>
+
                     <span className="italic text-red-500">{`${timeLeft?.days} ngày ${timeLeft?.hours} giờ ${timeLeft?.minutes} phút ${timeLeft?.seconds} giây`}</span>
                   </div>
                 )}
@@ -271,10 +308,10 @@ const Page = ({ params }: DetailOrderPageProps) => {
               {dataOrder?.shop_id && (
                 <div>
                   <div>
-                    Địa chỉ nhận hàng:&nbsp; {dataOrder?.shop_id?.address}&nbsp;
-                    <span className="cursor-pointer text-blue-500 underline">
-                      (Chỉ đường)
+                    <span className="font-medium">
+                      Địa chỉ nhận hàng:&nbsp;
                     </span>
+                    {dataOrder?.shop_id?.address}&nbsp;
                   </div>
                 </div>
               )}
