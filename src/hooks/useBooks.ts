@@ -55,11 +55,11 @@ export const useDetailBook = (id: string) => {
     queryFn: () => getDetailBooks(id),
   });
 
-  const params = { category_id: responseDetailBook?.data?.category_id };
+  const params = { categoryId: responseDetailBook?.data?.category_id[0]?.id };
 
   const responseList = useQuery({
     queryKey: ["books-2", params],
-    enabled: !!params?.category_id,
+    enabled: !!params?.categoryId,
     queryFn: () => fetchBooks(params),
   });
 
