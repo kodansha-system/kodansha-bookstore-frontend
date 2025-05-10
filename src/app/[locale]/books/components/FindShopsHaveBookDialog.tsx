@@ -134,8 +134,6 @@ export const FindShopsHaveBookDialog = ({
           <DialogTitle>Tìm cửa hàng có sách</DialogTitle>
         </DialogHeader>
 
-        <div className="text-blue-500">Tôi thấy hoa vàng trên cỏ xanh</div>
-
         {addresses.length === 0 ? (
           <div className="space-y-4">
             <div>
