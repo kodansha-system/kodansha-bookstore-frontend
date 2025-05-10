@@ -3,6 +3,8 @@
 import React, { useState } from "react";
 import { toast } from "react-toastify";
 
+import { useRouter } from "next/navigation";
+
 import { useTranslations } from "next-intl";
 
 import { loginAction } from "@/app/actions/auth";
@@ -33,6 +35,7 @@ import { Label } from "@/components/ui/label";
 const Account = () => {
   const [open, setOpen] = useState(false);
   const { user, setUser, logout } = useAuthStore();
+  const router = useRouter();
 
   const handleLogin = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -106,7 +109,9 @@ const Account = () => {
 
             <DropdownMenuSeparator />
 
-            <DropdownMenuItem>{t("Account.setting")}</DropdownMenuItem>
+            <DropdownMenuItem onClick={() => router.push("/user")}>
+              {t("Account.setting")}
+            </DropdownMenuItem>
 
             <DropdownMenuSeparator />
 
