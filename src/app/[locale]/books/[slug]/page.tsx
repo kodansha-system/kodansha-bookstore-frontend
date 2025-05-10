@@ -152,9 +152,13 @@ const ProductDetailPage = ({ params }: ProductDetailPageProps) => {
             detailBook?.in_flash_sale && countdown
               ? detailBook?.flash_sale?.price
               : detailBook?.price,
-          quantity: form.getValues("quantity"),
+          quantity: 1,
           total: detailBook?.price,
           flash_sale_id: detailBook?.flash_sale?.flash_sale_id,
+          weight: detailBook?.weight,
+          height: detailBook?.height,
+          length: detailBook?.length,
+          width: detailBook?.width,
         },
       ]);
     }
@@ -168,8 +172,12 @@ const ProductDetailPage = ({ params }: ProductDetailPageProps) => {
           detailBook?.in_flash_sale && countdown
             ? detailBook?.flash_sale?.price
             : detailBook?.price,
-        quantity: form.getValues("quantity"),
+        quantity: numberOfBookWantBuy,
         total: detailBook?.price,
+        weight: detailBook?.weight,
+        height: detailBook?.height,
+        length: detailBook?.length,
+        width: detailBook?.width,
       },
     ]);
     router.push("/payment");
@@ -664,6 +672,7 @@ const ProductDetailPage = ({ params }: ProductDetailPageProps) => {
                   <div
                     className="flex w-[45%] flex-col gap-2 rounded-md border border-gray-200 p-2"
                     key={index}
+                    onClick={() => router.push("/books/" + item?.id)}
                   >
                     <Image
                       alt=""
