@@ -1,5 +1,6 @@
 "use client";
 
+import Cookies from "js-cookie";
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
@@ -16,6 +17,8 @@ export const useAuthStore = create<AuthState>()(
       setUser: (user) => set({ user }),
       logout: () => {
         set({ user: null });
+        Cookies.remove("access_token");
+        Cookies.remove("refresh_token");
       },
     }),
     { name: "auth-storage" },

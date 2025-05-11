@@ -128,69 +128,79 @@ export default function FlashSaleSection() {
 
       <div className="flex grow flex-wrap justify-center gap-5">
         {flashSale &&
-          flashSale?.books?.map((item: any, index: number) => (
-            <div className="block" key={index}>
-              <div className="min-h-full rounded-lg border border-gray-200 bg-white p-3 shadow-sm transition-transform duration-1000 hover:shadow-lg">
-                <div className="relative size-[180px]">
-                  <Image
-                    alt="Sản phẩm"
-                    className="rounded-md object-cover"
-                    fill
-                    onClick={() => router.push(`/books/${item?.book_id?.id}`)}
-                    src={item?.book_id?.images[0]}
-                  />
-                </div>
-
-                <div className="mt-3 flex flex-col gap-2">
-                  {/* giá */}
-                  <div className="flex items-center gap-x-2 text-[20px] font-[500] text-red-500">
-                    <div>
-                      {new Intl.NumberFormat("vi-VN").format(item?.price)}đ
-                    </div>
-                  </div>
-
-                  <div className="mt-1 flex flex-col gap-y-1 text-sm">
-                    <div className="relative w-full">
-                      <Progress
-                        className="h-5 bg-red-200 [&>div]:bg-red-500"
-                        value={
-                          (item?.sold / (item?.quantity + item.sold)) * 100
-                        }
-                      />
-
-                      <span className="absolute inset-0 flex items-center justify-center text-xs font-medium text-white">
-                        Đã bán {item?.sold} / {item?.quantity + item.sold}
-                      </span>
-                    </div>
-                  </div>
-
-                  <div className="text-sm text-gray-500">
-                    {item?.book_id?.authors[0]?.name}
-                  </div>
-
-                  <div
-                    className="line-clamp-2 max-w-[180px] text-base font-medium text-gray-900"
-                    onClick={() => router.push(`/books/${item?.book_id?.id}`)}
-                  >
-                    {item?.book_id?.name}
-                  </div>
-
-                  <div className="mt-1 flex items-center justify-between text-sm text-gray-500">
-                    <div className="flex items-center gap-x-2 text-xs">
-                      <RatingStars rating={5} size={10} /> Đã bán&nbsp;
-                      {item?.book_id?.total_sold}
-                    </div>
-
-                    <ShoppingCart
-                      className="cursor-pointer hover:scale-150 hover:text-blue-500"
-                      onClick={() => handleAddToCart(item?.book_id?.id)}
-                      size={16}
+          flashSale?.books?.map((item: any, index: number) => {
+            return (
+              <div className="block" key={index}>
+                <div className="min-h-full rounded-lg border border-gray-200 bg-white p-3 shadow-sm transition-transform duration-1000 hover:shadow-lg">
+                  <div className="relative size-[180px]">
+                    <Image
+                      alt="Sản phẩm"
+                      className="rounded-md object-cover"
+                      fill
+                      onClick={() => router.push(`/books/${item?.book_id?.id}`)}
+                      src={item?.book_id?.images[0]}
                     />
+                  </div>
+
+                  <div className="mt-3 flex flex-col gap-2">
+                    <div className="flex items-center gap-x-2 text-[20px] font-[500] text-red-500">
+                      <div>
+                        {new Intl.NumberFormat("vi-VN").format(item?.price)}đ
+                      </div>
+
+                      <div className="flex items-center justify-center rounded-sm bg-gray-100 p-1 text-xs font-[400] text-black">
+                        -
+                        {(
+                          (1 - item?.price / item?.book_id?.origin_price) *
+                          100
+                        ).toFixed(0)}
+                        %
+                      </div>
+                    </div>
+
+                    <div className="mt-1 flex flex-col gap-y-1 text-sm">
+                      <div className="relative w-full">
+                        <Progress
+                          className="h-5 bg-red-200 [&>div]:bg-red-500"
+                          value={
+                            (item?.sold / (item?.quantity + item.sold)) * 100
+                          }
+                        />
+
+                        <span className="absolute inset-0 flex items-center justify-center text-xs font-medium text-white">
+                          Đã bán {item?.sold} / {item?.quantity + item.sold}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="text-sm text-gray-500">
+                      {item?.book_id?.authors[0]?.name}
+                    </div>
+
+                    <div
+                      className="line-clamp-2 max-w-[180px] text-base font-medium text-gray-900"
+                      onClick={() => router.push(`/books/${item?.book_id?.id}`)}
+                    >
+                      {item?.book_id?.name}
+                    </div>
+
+                    <div className="mt-1 flex items-center justify-between text-sm text-gray-500">
+                      <div className="flex items-center gap-x-2 text-xs">
+                        <RatingStars rating={5} size={10} /> Đã bán&nbsp;
+                        {item?.book_id?.total_sold}
+                      </div>
+
+                      <ShoppingCart
+                        className="cursor-pointer hover:scale-150 hover:text-blue-500"
+                        onClick={() => handleAddToCart(item?.book_id?.id)}
+                        size={16}
+                      />
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
       </div>
 
       <div className="mt-5 text-center">

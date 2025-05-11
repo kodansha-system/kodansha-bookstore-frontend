@@ -38,6 +38,7 @@ const formSchema = z.object({
       image: z.string(),
       discount: z.any(),
       price: z.any(),
+      origin_price: z.any(),
       total: z.any(),
       quantity: z.preprocess(
         (val) => Number(val),
@@ -146,19 +147,22 @@ const CartPage = () => {
 
     setValue(`cartItems.${index}.total`, Number(newTotal));
   };
+
   const total = useMemo(() => {
     const price =
       cartItems?.reduce(
         (sum, item) =>
-          item.checked
-            ? sum + Number(item.price + item.discount) * item.quantity
-            : sum,
+          item.checked ? sum + Number(item.origin_price) * item.quantity : sum,
         0,
       ) || 0;
+
     const discount =
       cartItems?.reduce(
         (sum, item) =>
-          item.checked ? sum + Number(item.discount) * item.quantity : sum,
+          item.checked
+            ? sum +
+              (Number(item.origin_price) - Number(item.price)) * item.quantity
+            : sum,
         0,
       ) || 0;
 
@@ -384,7 +388,7 @@ const CartPage = () => {
             </div>
 
             <div className="flex justify-between">
-              <div>Mã giảm giá từ Shelfly: </div>
+              <div>Mã giảm giá từ Kodansha: </div>
 
               <div className="text-green-300">0đ</div>
             </div>

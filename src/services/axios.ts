@@ -1,3 +1,6 @@
+import { toast } from "react-toastify";
+
+import { useAuthStore } from "@/store/authStore";
 import axios, { AxiosError } from "axios";
 import Cookies from "js-cookie";
 
@@ -9,89 +12,97 @@ export const api = axios.create({
 });
 
 let isRefreshing = false;
-let refreshSubscribers: ((token: string) => void)[] = [];
-const refreshToken = async () => {
+let refreshSubscribers: ((token: string | null) => void)[] = [];
+
+const notifyLoginRequired = (() => {
+  let shown = false;
+
+  return () => {
+    if (!shown) {
+      toast.error("Bạn cần đăng nhập để tiếp tục");
+      shown = true;
+      setTimeout(() => (shown = false), 3000); // reset sau 3s để tránh spam
+    }
+  };
+})();
+
+const refreshToken = async (): Promise<string> => {
   try {
     const response = await api.get(`/auth/refresh`);
-    const newAccessToken = response.data.access_token;
+    const newToken = response.data.access_token;
 
-    Cookies.set("access_token", newAccessToken);
+    Cookies.set("access_token", newToken);
 
-    return newAccessToken;
+    return newToken;
   } catch (error) {
-    console.error("Refresh token failed:", error);
     throw error;
   }
 };
 
-api.interceptors.request.use(
-  (config) => {
-    const accessToken = Cookies.get("access_token");
+function onRefreshed(token: string | null) {
+  refreshSubscribers.forEach((callback) => callback(token));
+  refreshSubscribers = [];
+}
 
-    if (accessToken) {
-      config.headers.Authorization = `Bearer ${accessToken}`;
-    }
+api.interceptors.request.use((config) => {
+  const token = Cookies.get("access_token");
 
-    return config;
-  },
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
 
-  async (error) => Promise.reject(error),
-);
+  return config;
+});
 
 api.interceptors.response.use(
-  (response) => {
-    return response.data;
-  },
+  (response) => response.data,
   async (error: AxiosError<any>) => {
     const originalRequest: any = error.config;
 
-    if (!error.status && error.message === "Network Error") {
-      // window.location.reload();
-
-      return;
+    // Kiểm tra nếu lỗi không phải 401 hoặc request đã retry thì bỏ qua
+    if (error.response?.status !== 401 || originalRequest._retry) {
+      return Promise.reject(error?.response?.data || error);
     }
 
-    if (
-      error.response?.status === 401 &&
-      originalRequest &&
-      !originalRequest._retry
-    ) {
-      if (isRefreshing) {
-        return new Promise((resolve) => {
-          refreshSubscribers.push((token) => {
-            originalRequest.headers.Authorization = `Bearer ${token}`;
-            resolve(api(originalRequest));
-          });
+    originalRequest._retry = true;
+
+    // Nếu đang refresh thì thêm vào hàng đợi
+    if (isRefreshing) {
+      return new Promise((resolve, reject) => {
+        refreshSubscribers.push((token) => {
+          if (!token) {
+            return reject(error);
+          }
+          originalRequest.headers.Authorization = `Bearer ${token}`;
+          resolve(api(originalRequest));
         });
-      }
-
-      originalRequest._retry = true;
-      isRefreshing = true;
-
-      try {
-        const newToken = await refreshToken();
-
-        isRefreshing = false;
-
-        refreshSubscribers.forEach((callback) => callback(newToken));
-        refreshSubscribers = [];
-
-        originalRequest.headers.Authorization = `Bearer ${newToken}`;
-
-        return api(originalRequest);
-      } catch (refreshError) {
-        isRefreshing = false;
-        refreshSubscribers = [];
-        Cookies.remove("access_token");
-
-        return Promise.reject(refreshError);
-      }
+      });
     }
 
-    if (error.response?.status === 404) {
-      return Promise.reject("404: Not found");
-    }
+    isRefreshing = true;
 
-    return Promise.reject(error?.response?.data);
+    try {
+      const newToken = await refreshToken();
+
+      onRefreshed(newToken);
+
+      // Cập nhật token và thử lại request gốc
+      originalRequest.headers.Authorization = `Bearer ${newToken}`;
+
+      return api(originalRequest);
+    } catch (refreshError) {
+      onRefreshed(null);
+
+      // Xử lý khi refresh thất bại
+      const authStore = useAuthStore.getState();
+
+      authStore.logout();
+      Cookies.remove("access_token");
+      notifyLoginRequired();
+
+      return Promise.reject(refreshError);
+    } finally {
+      isRefreshing = false;
+    }
   },
 );

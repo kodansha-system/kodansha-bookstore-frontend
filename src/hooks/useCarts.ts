@@ -36,7 +36,7 @@ export const useDetailCart = () => {
           id: item?.book_id?._id,
           name: item?.book_id?.name,
           price: item?.book_id?.price,
-          discount: item?.book_id?.discount,
+          discount: item?.book_id?.origin_price - item?.book_id?.price,
           image: item?.book_id?.images[0],
           quantity: item?.quantity,
           total: item?.quantity * item?.book_id?.price,

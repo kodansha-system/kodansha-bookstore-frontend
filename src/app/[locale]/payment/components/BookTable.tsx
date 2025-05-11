@@ -59,7 +59,9 @@ const BookTable = ({
               <TableCell className="min-w-[200px] break-words">
                 <div
                   className="line-clamp-2 text-gray-900"
-                  onClick={() => router.push(`/books/${item.book_id.id}`)}
+                  onClick={() =>
+                    router.push(`/books/${item?.book_id?.id || item?.id}`)
+                  }
                 >
                   {item.name || item?.book_id?.name}
                 </div>

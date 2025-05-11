@@ -89,11 +89,7 @@ const BookSection = ({ categoryId, title }: BookSectionProps) => {
                   </div>
 
                   <div className="flex items-center justify-center rounded-sm bg-gray-100 p-1 text-xs font-[400] text-black">
-                    -
-                    {(
-                      (item?.discount / (item?.price + item?.discount)) *
-                      100
-                    ).toFixed(0)}
+                    -{((1 - item?.price / item?.origin_price) * 100).toFixed(0)}
                     %
                   </div>
                 </div>

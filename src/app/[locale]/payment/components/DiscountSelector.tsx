@@ -112,10 +112,6 @@ const DiscountSelector = ({
     }
   }, [selectedProductVoucher, sortedProductVouchers]);
 
-  useEffect(() => {
-    console.log(shippingOptions, sortedFreeshipVouchers, sortedProductVouchers);
-  }, [shippingOptions, sortedFreeshipVouchers, sortedProductVouchers]);
-
   return (
     <div className="my-3 rounded-md border bg-white p-4 text-sm text-gray-500">
       <div>Mã giảm giá</div>

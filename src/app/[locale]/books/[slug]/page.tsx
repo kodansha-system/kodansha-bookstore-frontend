@@ -144,7 +144,7 @@ const ProductDetailPage = ({ params }: ProductDetailPageProps) => {
     if (detailBook?.in_flash_sale) {
       setBookToBuy([
         {
-          discount: detailBook?.discount,
+          discount: detailBook?.origin_price - detailBook?.price,
           id: detailBook?.id,
           image: detailBook?.images[0],
           name: detailBook?.name,
@@ -164,7 +164,7 @@ const ProductDetailPage = ({ params }: ProductDetailPageProps) => {
     }
     setBookToBuy([
       {
-        discount: detailBook?.discount,
+        discount: detailBook?.origin_price - detailBook?.price,
         id: detailBook?.id,
         image: detailBook?.images[0],
         name: detailBook?.name,
@@ -352,13 +352,11 @@ const ProductDetailPage = ({ params }: ProductDetailPageProps) => {
 
                     <div className="ml-2 rounded-sm bg-gray-200 px-2 py-1 text-xs text-black">
                       -
-                      {detailBook?.price
-                        ? (
-                            (detailBook?.discount /
-                              (detailBook?.price + detailBook?.discount)) *
-                            100
-                          )?.toFixed(0)
-                        : 0}
+                      {(detailBook?.price
+                        ? (1 - detailBook?.price / detailBook?.origin_price) *
+                          100
+                        : 0
+                      ).toFixed(0)}
                       %
                     </div>
                   </>

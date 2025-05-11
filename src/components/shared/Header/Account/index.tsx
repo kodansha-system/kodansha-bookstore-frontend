@@ -10,6 +10,7 @@ import { useTranslations } from "next-intl";
 import { loginAction } from "@/app/actions/auth";
 import { api } from "@/services/axios";
 import { useAuthStore } from "@/store/authStore";
+import Cookies from "js-cookie";
 import { CircleUser } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -48,9 +49,11 @@ const Account = () => {
 
     if (res && res.statusCode === 201) {
       toast.success("Đăng nhập thành công");
-      const resDetailUser = await api.get(`/users/${res.data.user._id}`);
+      Cookies.set("access_token", res?.data?.access_token);
+      const resDetailUser = await api.get(`/auth/profile`);
 
       setUser(resDetailUser.data);
+
       setOpen(false);
     } else {
       toast.error("Email/mật khẩu không khớp");
@@ -96,13 +99,13 @@ const Account = () => {
 
       {user ? (
         <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <div className="flex items-center gap-x-2">
+          <div className="flex items-center gap-x-2">
+            <DropdownMenuTrigger asChild>
               <Button className="rounded-full" size="icon" variant="secondary">
                 <CircleUser className="size-5" />
               </Button>
-            </div>
-          </DropdownMenuTrigger>
+            </DropdownMenuTrigger>
+          </div>
 
           <DropdownMenuContent align="end">
             <DropdownMenuLabel>{t("Account.myAcc")}</DropdownMenuLabel>

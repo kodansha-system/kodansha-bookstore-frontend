@@ -52,7 +52,7 @@ const BannerSlider = () => {
   }, []);
 
   useEffect(() => {
-    if (listArticle.length > 0) {
+    if (listArticle?.length > 0) {
       setIsSwiperReady(true);
     }
   }, [listArticle]);
