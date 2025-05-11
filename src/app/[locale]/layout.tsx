@@ -17,7 +17,7 @@ import "./globals.css";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Shelfly",
+  title: "Kodansha",
   description: "An online book store built with NextJS",
 };
 
