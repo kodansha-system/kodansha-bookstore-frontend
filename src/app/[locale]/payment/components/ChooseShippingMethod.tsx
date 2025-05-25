@@ -165,7 +165,7 @@ export const ChooseShippingMethod = ({
 
       {isPickup && (
         <div>
-          <div className="my-2 italic text-red-500">
+          <div className="my-2 w-full italic text-red-500">
             (Lưu ý: Bạn có 3 ngày để đến cửa hàng lấy sách, sau thời gian trên
             đơn hàng sẽ tự động hủy)
           </div>

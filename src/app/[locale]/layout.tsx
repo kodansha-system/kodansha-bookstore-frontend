@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 
 import { Inter } from "next/font/google";
+import { headers } from "next/headers";
 
 import { NextIntlClientProvider } from "next-intl";
 import { getMessages } from "next-intl/server";
@@ -9,6 +10,7 @@ import Footer from "@/components/shared/Footer";
 import Header from "@/components/shared/Header";
 import ToastProvider from "@/components/shared/ToastProvider";
 import { ThemeProvider } from "@/components/theme-provider";
+import TopProgressBar from "@/components/ui/progress-bar";
 import { TooltipProvider } from "@/components/ui/tooltip";
 
 import Providers from "../providers";
@@ -28,13 +30,19 @@ export default async function RootLayout({
   children: React.ReactNode;
   params: { locale: string };
 }>) {
-  // Providing all messages to the client
-  // side is the easiest way to get started
+  const requestHeaders = headers();
+  const pathname = requestHeaders.get("x-pathname") || "";
+
+  const isLoginPage = pathname === "/login";
   const messages = await getMessages();
+
+  if (isLoginPage) return <>{children}</>;
 
   return (
     <html lang={locale}>
       <body className={inter.className} suppressHydrationWarning>
+        <TopProgressBar />
+
         <Providers>
           <NextIntlClientProvider messages={messages}>
             <ThemeProvider

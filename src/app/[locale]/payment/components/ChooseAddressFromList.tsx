@@ -38,7 +38,7 @@ export const ChooseAddressFromList = ({
 }: any) => {
   const { user: profile } = useAuthStore();
   const [listAddress, setListAddress] = useState<any[]>([]);
-  const [selectedAddress, setSelectedAddress] = useState();
+  const [selectedAddress, setSelectedAddress] = useState<any>();
 
   const handleGetListAddress = async () => {
     if (profile) {

@@ -28,7 +28,7 @@ const DetailShop = ({ params }: { params: { slug: string } }) => {
         <iframe
           height="450"
           loading="lazy"
-          src={detailShop?.map}
+          src={detailShop?.google_map_url}
           width={"100%"}
         ></iframe>
       </div>

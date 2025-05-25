@@ -68,14 +68,18 @@ async function Header() {
         </SheetContent>
       </Sheet>
 
-      <div className="flex w-full items-center gap-4 md:ml-auto md:gap-2 lg:gap-4">
-        <SearchForm />
+      <div className="hidden w-full items-center gap-4 md:ml-auto md:flex md:gap-2 lg:gap-4">
+        <div>
+          <SearchForm />
+        </div>
 
-        <Account />
+        <div className="hidden items-center gap-2 lg:flex">
+          <Account />
 
-        <ThemeToggle />
+          <ThemeToggle />
 
-        <LanguageSwitcher />
+          <LanguageSwitcher />
+        </div>
       </div>
     </header>
   );

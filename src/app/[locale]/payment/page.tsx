@@ -224,11 +224,11 @@ const Page = () => {
       </div>
 
       <form
-        className="mx-0 flex justify-center gap-x-3"
+        className="mx-0 flex flex-wrap justify-center gap-3 bg-red-400 px-[20px] lg:px-[40px]"
         onSubmit={form.handleSubmit(onSubmit)}
       >
-        <div className="rounded-md">
-          <div className="w-full rounded-md border bg-white p-5 pb-[30px] text-[15px]">
+        <div className="rounded-md px-[20px] lg:px-[40px]">
+          <div className="w-full max-w-[100vw] overflow-scroll rounded-md border bg-white p-5 pb-[30px] text-[15px]">
             <BookTable books={books_order} />
           </div>
 

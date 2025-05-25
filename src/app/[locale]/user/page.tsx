@@ -32,7 +32,7 @@ const formSchema = z.object({
   date_of_birth: z.any().optional(),
 });
 
-function CourseAddNew({ user }: { user: any }) {
+function Profile() {
   const { user: profile } = useAuthStore();
   const [open, setOpen] = useState(false);
   const [address, setAddress] = useState<any>();
@@ -311,4 +311,4 @@ function CourseAddNew({ user }: { user: any }) {
   );
 }
 
-export default CourseAddNew;
+export default Profile;

@@ -150,11 +150,11 @@ const CartPage = () => {
 
   const total = useMemo(() => {
     const price =
-      cartItems?.reduce(
-        (sum, item) =>
-          item.checked ? sum + Number(item.origin_price) * item.quantity : sum,
-        0,
-      ) || 0;
+      cartItems?.reduce((sum, item) => {
+        return item.checked
+          ? sum + Number(item.origin_price) * item.quantity
+          : sum;
+      }, 0) || 0;
 
     const discount =
       cartItems?.reduce(

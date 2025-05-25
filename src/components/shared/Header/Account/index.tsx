@@ -10,6 +10,7 @@ import { useTranslations } from "next-intl";
 import { loginAction } from "@/app/actions/auth";
 import { api } from "@/services/axios";
 import { useAuthStore } from "@/store/authStore";
+import { useQuery } from "@tanstack/react-query";
 import Cookies from "js-cookie";
 import { CircleUser } from "lucide-react";
 
@@ -52,13 +53,23 @@ const Account = () => {
       Cookies.set("access_token", res?.data?.access_token);
       const resDetailUser = await api.get(`/auth/profile`);
 
-      setUser(resDetailUser.data);
+      setUser({ ...resDetailUser.data, id: resDetailUser.data._id });
 
       setOpen(false);
     } else {
       toast.error("Email/mật khẩu không khớp");
     }
   };
+
+  const { data, isError, error } = useQuery({
+    queryKey: ["profile"],
+    queryFn: async () => {
+      const res = await api.get("/auth/profile");
+
+      return res.data;
+    },
+    retry: false,
+  });
 
   const t = useTranslations("Home");
 

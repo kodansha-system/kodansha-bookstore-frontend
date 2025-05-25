@@ -51,7 +51,7 @@ const SearchForm = () => {
               <FormItem>
                 <FormControl>
                   <Input
-                    className="pl-8 sm:w-[300px] md:w-[200px] lg:w-[400px]"
+                    className="w-[300px] pl-8 lg:w-[400px]"
                     placeholder={`${t("findProduct")}...`}
                     type="search"
                     {...field}

@@ -21,7 +21,7 @@ const notifyLoginRequired = (() => {
     if (!shown) {
       toast.error("Bạn cần đăng nhập để tiếp tục");
       shown = true;
-      setTimeout(() => (shown = false), 3000); // reset sau 3s để tránh spam
+      setTimeout(() => (shown = false), 3000);
     }
   };
 })();
