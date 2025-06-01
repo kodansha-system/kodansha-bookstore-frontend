@@ -693,7 +693,7 @@ const ProductDetailPage = ({ params }: ProductDetailPageProps) => {
           </div>
         </ProductContent>
 
-        <div className="sticky top-[80px] h-[200px] max-h-[700px] w-full rounded-lg bg-white p-4 lg:w-[300px]">
+        <div className="sticky top-[80px] max-h-[700px] min-h-[200px] w-full rounded-lg bg-white p-4 lg:w-[300px]">
           <div className="mb-3 font-medium">Thường được mua kèm</div>
 
           <div className="flex flex-wrap gap-2">
@@ -716,14 +716,22 @@ const ProductDetailPage = ({ params }: ProductDetailPageProps) => {
 
                     <div className="text-sm">
                       <div className="line-clamp-2 max-w-[300px] text-xs">
-                        {item?.name}
+                        {item?.bookName}
                       </div>
 
                       <div className="flex items-center gap-1">
                         {[...Array(5)].map((_, i) => (
                           <Star
-                            color={i < 5 ? "#FFD700" : "#C0C0C0"}
-                            fill={i < 5 ? "#FFD700" : "#C0C0C0"}
+                            color={
+                              i < Math.floor(item?.rating ?? 0)
+                                ? "#FFD700"
+                                : "#C0C0C0"
+                            }
+                            fill={
+                              i < Math.floor(item?.rating ?? 0)
+                                ? "#FFD700"
+                                : "#C0C0C0"
+                            }
                             key={i}
                             size={10}
                           />

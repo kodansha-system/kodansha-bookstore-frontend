@@ -8,6 +8,14 @@ const fetchBooks = async (params: any) => {
   return response.data;
 };
 
+const fetchTopBooks = async (params: any) => {
+  const response = await api.get("/statistics/top-books-by-category", {
+    params,
+  });
+
+  return response.data;
+};
+
 const getDetailBooks = async (id: string) => {
   const response = await api.get(`/books/${id}`);
 
@@ -79,7 +87,7 @@ export const useDetailBook = (id: string) => {
   const responseList = useQuery({
     queryKey: ["books-2", params],
     enabled: !!params?.categoryId,
-    queryFn: () => fetchBooks(params),
+    queryFn: () => fetchTopBooks(params),
   });
 
   const responseRecommendAlsoBoughtBooks = useQuery({
@@ -90,7 +98,7 @@ export const useDetailBook = (id: string) => {
   return {
     listBookSameCategory: [
       ...(responseRecommendAlsoBoughtBooks?.data?.data || []),
-      // ...(responseList?.data?.books || []),
+      ...(responseList?.data || []),
     ],
     detailBook: responseDetailBook?.data || {},
   };
