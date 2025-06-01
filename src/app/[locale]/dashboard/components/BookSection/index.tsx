@@ -69,12 +69,12 @@ const BookSection = ({ categoryId, title }: BookSectionProps) => {
 
       <div className="flex flex-wrap gap-2 lg:justify-center lg:gap-4">
         {books.map((item: any, index: number) => (
-          <div className="block w-[calc(50vw-35px)]" key={index}>
+          <div className="block w-[calc(50vw-35px)] md:w-[180px]" key={index}>
             <div className="min-h-full rounded-lg border border-gray-200 bg-white p-3 shadow-sm transition-transform duration-1000 hover:shadow-lg">
               <div className="relative mx-auto flex aspect-[1/1] w-full justify-center">
                 <Image
                   alt="Sản phẩm"
-                  className="rounded-md object-cover"
+                  className="size-[180px] rounded-md object-cover"
                   fill
                   onClick={() => router.push(`/books/${item?.id}`)}
                   src={item?.images[0]}
@@ -102,7 +102,7 @@ const BookSection = ({ categoryId, title }: BookSectionProps) => {
                   </div>
                 )}
 
-                <div className="line-clamp-2 max-w-[calc((100vw-20px)/2)] text-sm font-medium text-gray-900 lg:max-w-[180px] lg:text-base">
+                <div className="line-clamp-2 max-w-[calc((100vw-20px)/2)] text-sm font-medium text-gray-900 md:max-w-[180px] lg:max-w-[180px] lg:text-base">
                   {item?.name}
                 </div>
 
