@@ -85,7 +85,7 @@ export const ChooseShippingMethod = ({
   }, [shippingOptions]);
 
   return (
-    <>
+    <div className="mx-5 lg:mx-0">
       <div className="my-4 text-base font-semibold text-gray-800">
         Chọn phương thức vận chuyển
       </div>
@@ -206,6 +206,6 @@ export const ChooseShippingMethod = ({
           </div>
         </div>
       )}
-    </>
+    </div>
   );
 };

@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "react-toastify";
 
@@ -32,6 +33,7 @@ const LoginPage = () => {
     resolver: zodResolver(schema),
   });
   const { user, setUser, logout } = useAuthStore();
+  const reason = new URLSearchParams(window.location.search).get("reason");
 
   const onSubmit = async (values: FormValues) => {
     try {
@@ -41,7 +43,6 @@ const LoginPage = () => {
 
       const resDetailUser = await api.get(`/auth/profile`);
 
-      console.log({ ...resDetailUser.data, id: resDetailUser.data._id });
       setUser({ ...resDetailUser.data, id: resDetailUser.data._id });
 
       toast.success("Đăng nhập thành công!");
@@ -51,6 +52,16 @@ const LoginPage = () => {
       toast.error("Đăng nhập thất bại!");
     }
   };
+
+  useEffect(() => {
+    if (reason === "unauthorized") {
+      toast.warning("Vui lòng đăng nhập để tiếp tục");
+      const url = new URL(window.location.href);
+
+      url.searchParams.delete("reason");
+      window.history.replaceState({}, "", url.toString());
+    }
+  }, [reason]);
 
   return (
     <div className="relative h-auto w-full">

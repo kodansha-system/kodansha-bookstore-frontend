@@ -1,17 +1,14 @@
 import React from "react";
 
-import { DATE_FORMAT } from "@/services/constants";
-import dayjs from "dayjs";
-
 interface OrderHistoryProps {
   events: any;
 }
 
 const OrderHistory: React.FC<OrderHistoryProps> = ({ events }) => {
   return (
-    <div className="height-auto grow sm:mt-8 lg:mt-0">
+    <div className="h-auto grow">
       <div className="space-y-6 rounded-lg border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-700 dark:bg-gray-800">
-        <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
+        <h3 className="text-base font-semibold text-gray-900 dark:text-white md:text-xl">
           Theo dõi đơn hàng
         </h3>
 
@@ -38,7 +35,7 @@ const OrderHistory: React.FC<OrderHistoryProps> = ({ events }) => {
                 </svg>
               </span>
 
-              <h4 className="mb-0.5 text-base font-semibold text-gray-900 dark:text-white">
+              <h4 className="mb-0.5 text-sm font-semibold text-gray-900 dark:text-white md:text-base">
                 {event.date}
               </h4>
 

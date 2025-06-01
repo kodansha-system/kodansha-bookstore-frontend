@@ -38,6 +38,9 @@ const ProductContainer = styled.div`
     min-height: 0;
     min-width: 0;
   }
+  @media (max-width: 1100px) {
+    padding: 0px 10px;
+  }
 `;
 
 const ProductTop = styled.div`
@@ -83,11 +86,6 @@ const ProductContent = styled.div`
     width: 100%;
   }
 `;
-
-const feedback = [
-  { id: 1, content: "Sản phẩm tuyệt vời!", rating: 5 },
-  { id: 2, content: "Rất hài lòng với chất lượng.", rating: 4 },
-];
 
 interface ProductDetailPageProps {
   params: {
@@ -302,7 +300,9 @@ const ProductDetailPage = ({ params }: ProductDetailPageProps) => {
             </div>
 
             <div className="my-2">
-              <div className="text-[22px] font-medium">{detailBook?.name}</div>
+              <div className="line-clamp-2 text-[22px] font-medium leading-[32px]">
+                {detailBook?.name}
+              </div>
 
               <div className="mt-2 flex items-center gap-2">
                 {[...Array(5)].map((_, i) => (
@@ -338,6 +338,22 @@ const ProductDetailPage = ({ params }: ProductDetailPageProps) => {
                         )
                       : 0}
                     đ
+                    <span className="ml-2 text-base text-gray-300 line-through">
+                      {detailBook?.origin_price?.toLocaleString()}đ
+                    </span>
+                    {/* Tính discount theo giá flash sale */}
+                    <div className="ml-2 rounded-sm bg-gray-200 px-2 py-1 text-xs text-black">
+                      -
+                      {detailBook?.flash_sale?.price
+                        ? (
+                            (1 -
+                              detailBook?.flash_sale?.price /
+                                detailBook?.origin_price) *
+                            100
+                          ).toFixed(0)
+                        : 0}
+                      %
+                    </div>
                   </div>
                 ) : (
                   <>
@@ -348,15 +364,19 @@ const ProductDetailPage = ({ params }: ProductDetailPageProps) => {
                           )
                         : 0}
                       đ
+                      <span className="ml-2 text-base font-medium text-gray-300 line-through">
+                        {detailBook?.origin_price?.toLocaleString()}đ
+                      </span>
                     </div>
 
-                    <div className="ml-2 rounded-sm bg-gray-200 px-2 py-1 text-xs text-black">
+                    <div className="ml-2 rounded-sm bg-gray-200 px-2 py-1 text-xs font-medium text-black">
                       -
-                      {(detailBook?.price
-                        ? (1 - detailBook?.price / detailBook?.origin_price) *
-                          100
-                        : 0
-                      ).toFixed(0)}
+                      {detailBook?.price
+                        ? (
+                            (1 - detailBook?.price / detailBook?.origin_price) *
+                            100
+                          ).toFixed(0)
+                        : 0}
                       %
                     </div>
                   </>
@@ -385,55 +405,65 @@ const ProductDetailPage = ({ params }: ProductDetailPageProps) => {
                 </div>
               )}
 
-              <div className="my-2 flex items-center gap-2">
-                Số lượng:
-                <div className="flex items-center gap-1">
-                  <div
-                    className="cursor-pointer rounded-md border border-gray-400 p-1"
-                    onClick={() =>
-                      form.setValue(
-                        "quantity",
-                        Math.max(1, Number(form.watch("quantity")) - 1),
-                      )
-                    }
-                  >
-                    <MinusIcon />
-                  </div>
+              {!(
+                detailBook?.quantity === 0 || detailBook?.is_deleted === true
+              ) ? (
+                <div className="my-2 flex items-center gap-2">
+                  Số lượng:
+                  <div className="flex items-center gap-1">
+                    <div
+                      className="cursor-pointer rounded-md border border-gray-400 p-1"
+                      onClick={() =>
+                        form.setValue(
+                          "quantity",
+                          Math.max(1, Number(form.watch("quantity")) - 1),
+                        )
+                      }
+                    >
+                      <MinusIcon />
+                    </div>
 
-                  <Input
-                    className="h-[33px] w-[60px] select-none border-gray-400 text-center text-[15px]"
-                    max={10}
-                    min={1}
-                    type="number"
-                    {...form.register("quantity", {
-                      min: 1,
-                      max: 10,
-                    })}
-                  />
+                    <Input
+                      className="h-[33px] w-[60px] select-none border-gray-400 text-center text-[15px]"
+                      max={10}
+                      min={1}
+                      type="number"
+                      {...form.register("quantity", {
+                        min: 1,
+                        max: 10,
+                      })}
+                    />
 
-                  <div
-                    className="cursor-pointer rounded-md border border-gray-400 p-1"
-                    onClick={() =>
-                      form.setValue(
-                        "quantity",
-                        Math.min(10, Number(form.watch("quantity")) + 1),
-                      )
-                    }
-                  >
-                    <PlusIcon />
+                    <div
+                      className="cursor-pointer rounded-md border border-gray-400 p-1"
+                      onClick={() =>
+                        form.setValue(
+                          "quantity",
+                          Math.min(10, Number(form.watch("quantity")) + 1),
+                        )
+                      }
+                    >
+                      <PlusIcon />
+                    </div>
                   </div>
+                  {Number(form.watch("quantity")) < 1 ||
+                  Number(form.watch("quantity") > 10) ? (
+                    <div className="text-red-400">Số lượng không hợp lệ</div>
+                  ) : (
+                    ""
+                  )}
                 </div>
-                {Number(form.watch("quantity")) < 1 ||
-                Number(form.watch("quantity") > 10) ? (
-                  <div className="text-red-400">Số lượng không hợp lệ</div>
-                ) : (
-                  ""
-                )}
-              </div>
+              ) : (
+                <div className="text-[18px]">Sản phẩm tạm hết hàng</div>
+              )}
 
               <div className="my-5 flex gap-2">
                 <Button
                   className="select-none bg-blue-500 hover:bg-blue-400"
+                  disabled={
+                    detailBook?.quantity === 0 ||
+                    detailBook?.is_deleted === true
+                  }
                   onClick={form.handleSubmit(handleAddToCart)}
                 >
                   Thêm vào giỏ hàng
@@ -441,6 +471,10 @@ const ProductDetailPage = ({ params }: ProductDetailPageProps) => {
 
                 <Button
                   className="select-none"
+                  disabled={
+                    detailBook?.quantity === 0 ||
+                    detailBook?.is_deleted === true
+                  }
                   onClick={handleBuyBook}
                   variant="destructive"
                 >
@@ -659,8 +693,8 @@ const ProductDetailPage = ({ params }: ProductDetailPageProps) => {
           </div>
         </ProductContent>
 
-        <div className="sticky top-[80px] h-[700px] w-[300px] rounded-lg bg-white p-4">
-          <div className="mb-3 font-medium">Sản phẩm cùng danh mục</div>
+        <div className="sticky top-[80px] h-[200px] max-h-[700px] w-full rounded-lg bg-white p-4 lg:w-[300px]">
+          <div className="mb-3 font-medium">Thường được mua kèm</div>
 
           <div className="flex flex-wrap gap-2">
             {listBookSameCategory
@@ -668,13 +702,13 @@ const ProductDetailPage = ({ params }: ProductDetailPageProps) => {
               ?.map((item: any, index: number) => {
                 return (
                   <div
-                    className="flex w-[45%] flex-col gap-2 rounded-md border border-gray-200 p-2"
+                    className="flex w-[45%] max-w-[130px] flex-col gap-2 rounded-md border border-gray-200 p-2"
                     key={index}
-                    onClick={() => router.push("/books/" + item?.id)}
+                    onClick={() => router.push("/books/" + item?._id)}
                   >
                     <Image
                       alt=""
-                      className="h-[110px] rounded-md border object-cover p-1"
+                      className="mx-auto h-[110px] rounded-md border object-cover p-1"
                       height={150}
                       src={item?.images?.[0]}
                       width={100}
@@ -697,10 +731,7 @@ const ProductDetailPage = ({ params }: ProductDetailPageProps) => {
                       </div>
 
                       <div className="font-medium text-gray-800">
-                        {new Intl.NumberFormat("vi-VN").format(
-                          detailBook?.price,
-                        )}
-                        đ
+                        {new Intl.NumberFormat("vi-VN").format(item?.price)}đ
                       </div>
                     </div>
                   </div>

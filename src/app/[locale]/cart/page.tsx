@@ -9,13 +9,16 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 
 import { api } from "@/services/axios";
+import { useAuthStore } from "@/store/authStore";
 import { useCartStore } from "@/store/cartStore";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { DeleteIcon, Trash2Icon } from "lucide-react";
+import { useQueryClient } from "@tanstack/react-query";
+import { DeleteIcon, ShoppingCart, Trash2Icon } from "lucide-react";
 import { z } from "zod";
 
 import MinusIcon from "@/components/icons/MinusIcon";
 import PlusIcon from "@/components/icons/PlusIcon";
+import RatingStars from "@/components/shared/RatingStar";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -27,6 +30,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 
+import { useRecommendedBook } from "@/hooks/useBooks";
 import { useDetailCart } from "@/hooks/useCarts";
 
 const formSchema = z.object({
@@ -73,6 +77,7 @@ const CartPage = () => {
     control,
     name: "cartItems",
   });
+  const queryClient = useQueryClient();
 
   const cartItems = watch("cartItems");
 
@@ -175,6 +180,29 @@ const CartPage = () => {
   const handleViewDetailBook = (id: string) => {
     router.push(`/books/${id}`);
   };
+  const { user } = useAuthStore();
+
+  const dataRecommendedBooks = useRecommendedBook(user?._id || "");
+
+  const handleAddToCart = async (id: string) => {
+    try {
+      await api.post("/carts", {
+        books: [
+          {
+            book_id: id,
+            quantity: 1,
+          },
+        ],
+      });
+
+      queryClient.invalidateQueries({ queryKey: ["detail-cart"] });
+
+      toast.success("Thêm vào giỏ hàng thành công!");
+    } catch (err) {
+      toast.error("Có lỗi khi thêm vào giỏ hàng!");
+      console.log(err);
+    }
+  };
 
   useEffect(() => {
     if (memoizedDataCart.length > 0) {
@@ -197,11 +225,11 @@ const CartPage = () => {
 
   return (
     <>
-      <div className="px-[60px] pb-[20px] text-[20px] font-medium">
+      <div className="px-5 pb-[20px] text-[20px] font-medium md:px-[60px]">
         Giỏ hàng
       </div>
 
-      <div className="mx-[60px] mb-3 flex gap-3">
+      <div className="mx-5 mb-3 flex gap-3 md:mx-[60px]">
         <div
           className="flex w-[140px] cursor-pointer items-center justify-center rounded-md border border-red-500 bg-white text-sm font-medium text-red-500 hover:bg-red-500 hover:text-white"
           onClick={handleChooseAllBooks}
@@ -217,7 +245,7 @@ const CartPage = () => {
         </Button>
       </div>
 
-      <div className="mx-[60px] flex select-none flex-wrap gap-3 bg-gray-50 py-5 pt-0">
+      <div className="mx-5 flex select-none flex-wrap gap-3 bg-gray-50 py-5 pt-0 md:mx-[60px]">
         <div className="flex w-[1000px] gap-x-3 overflow-x-auto bg-gray-50 py-5 pt-0">
           <div className="min-w-[1000px] rounded-md">
             <Form {...form}>
@@ -418,52 +446,70 @@ const CartPage = () => {
         </div>
       </div>
 
-      <div className="mx-[60px] mb-5 rounded-md bg-white px-3 py-5">
+      <div className="mx-5 mb-5 rounded-md bg-white px-3 py-5 md:mx-[60px]">
         <div className="ml-[10px] text-[18px] font-medium">Gợi ý cho bạn</div>
 
-        {/* <div className="mt-5 flex grow flex-wrap justify-center gap-3">
-          {[1, 2, 3, 4, 5, 6, 8, 1, 1, 1, 1, 1, 1, 1, 1].map((_, index) => (
-            <Link className="block" href="#" key={index}>
-              <div className="rounded-lg border border-gray-200 bg-white p-3 shadow-sm transition-transform duration-1000 hover:shadow-lg">
-                <div className="relative size-[180px]">
-                  <Image
-                    alt="Sản phẩm"
-                    className="rounded-md object-cover"
-                    fill
-                    src="https://danviet.mediacdn.vn/296231569849192448/2023/8/26/sach-nna-ban-tieng-anh-16930541445461508724279.jpg"
-                  />
-                </div>
-                <div className="mt-3 flex flex-col gap-2">
-                  <div className="flex items-center gap-x-2 text-[20px] font-[500] text-red-500">
-                    <div>{new Intl.NumberFormat("vi-VN").format(100000)}đ</div>
-                    <div className="flex items-center justify-center rounded-sm bg-gray-100 p-1 text-xs font-[400] text-black">
-                      -30%
+        <div className="mt-5 flex grow flex-wrap justify-center gap-3">
+          {dataRecommendedBooks &&
+            dataRecommendedBooks?.data?.data?.length > 0 &&
+            dataRecommendedBooks?.data?.data?.map(
+              (item: any, index: number) => (
+                <Link
+                  className="block"
+                  href={`/books/${item?._id}`}
+                  key={index}
+                >
+                  <div className="rounded-lg border border-gray-200 bg-white p-3 shadow-sm transition-transform duration-1000 hover:shadow-lg">
+                    <div className="relative size-[180px]">
+                      <Image
+                        alt="Sản phẩm"
+                        className="rounded-md object-cover"
+                        fill
+                        src={item?.images?.[0]}
+                      />
+                    </div>
+
+                    <div className="mt-3 flex flex-col gap-2">
+                      <div className="flex items-center gap-x-2 text-[20px] font-[500] text-red-500">
+                        <div>
+                          {new Intl.NumberFormat("vi-VN").format(item?.price)}đ
+                        </div>
+
+                        <div className="flex items-center justify-center rounded-sm bg-gray-100 p-1 text-xs font-[400] text-black">
+                          -
+                          {(
+                            (1 - item?.price / item?.origin_price) *
+                            100
+                          ).toFixed(0)}
+                          %
+                        </div>
+                      </div>
+
+                      <div className="line-clamp-2 max-w-[180px] text-base font-medium text-gray-900">
+                        {item?.name}
+                      </div>
+
+                      <div className="mt-1 flex items-center justify-between text-base text-gray-500">
+                        <div className="flex items-center gap-x-2 text-xs">
+                          <RatingStars
+                            rating={item?.rating_average}
+                            size={10}
+                          />{" "}
+                          Đã bán&nbsp;
+                          {item?.total_sold}
+                        </div>
+
+                        <ShoppingCart
+                          className="hover:scale-150 hover:text-blue-500"
+                          onClick={() => handleAddToCart(item?._id)}
+                          size={16}
+                        />
+                      </div>
                     </div>
                   </div>
-                  <div className="text-base text-gray-500">Nguyễn Nhật Ánh</div>
-                  <div className="line-clamp-2 max-w-[180px] text-base font-medium text-gray-900">
-                    Tôi thấy hoa vàng trên cỏ xanh
-                  </div>
-                  <div className="mt-1 flex items-center justify-between text-base text-gray-500">
-                    <div className="flex items-center gap-x-2 text-xs">
-                      <RatingStars rating={5} size={10} /> Đã bán 2000
-                    </div>
-                    <ShoppingCart
-                      className="hover:scale-150 hover:text-blue-500"
-                      size={16}
-                    />
-                  </div>
-                </div>
-              </div>
-            </Link>
-          ))}
-        </div> */}
-        <div className="mt-5 text-center">
-          <Link className="inline-block w-[200px]" href="#" passHref>
-            <div className="text-blue- mx-auto mt-2 block w-[200px] rounded-md border border-blue-500 p-2 text-center font-medium text-blue-500 transition-[1000] hover:bg-blue-100">
-              Xem thêm
-            </div>
-          </Link>
+                </Link>
+              ),
+            )}
         </div>
       </div>
     </>

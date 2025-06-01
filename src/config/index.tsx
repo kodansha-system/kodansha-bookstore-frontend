@@ -4,10 +4,11 @@ export const defaultLocale = "en";
 export const locales = ["en", "vi"] as const;
 
 export const protectedPathnames = {
-  "/": "/",
-  "/finalisation": "/dashboard",
-  "/inspirations": "/settings",
-  "/user": "/user",
+  CART: "/cart",
+  MY_ORDERS: "/my-order",
+  PAYMENT: "/payment",
+  PAYMENT_RESULT: "/payment-result",
+  USER: "/user",
 } satisfies Pathnames<typeof locales>;
 
 export const publicPathnames = {
@@ -26,7 +27,6 @@ export const pathnames = {
   "/story": "/user",
 } satisfies Pathnames<typeof locales>;
 
-// Use the default: `always`
 export const localePrefix = undefined;
 
 export type AppPathnames = keyof typeof pathnames;

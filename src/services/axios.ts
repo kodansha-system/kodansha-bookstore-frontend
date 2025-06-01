@@ -21,6 +21,7 @@ const notifyLoginRequired = (() => {
     if (!shown) {
       toast.error("Bạn cần đăng nhập để tiếp tục");
       shown = true;
+      window.location.href = "/login";
       setTimeout(() => (shown = false), 3000);
     }
   };

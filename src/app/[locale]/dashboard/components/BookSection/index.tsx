@@ -55,7 +55,7 @@ const BookSection = ({ categoryId, title }: BookSectionProps) => {
   }, [categoryId]);
 
   return (
-    <div className="mx-[60px] mb-10 bg-white p-5">
+    <div className="mx-2 mb-10 bg-white p-5 lg:mx-[60px]">
       <div className="mb-4 flex items-center justify-between">
         <h2 className="text-xl font-semibold">{title}</h2>
 
@@ -67,11 +67,11 @@ const BookSection = ({ categoryId, title }: BookSectionProps) => {
         </button>
       </div>
 
-      <div className="flex flex-wrap justify-center gap-4">
+      <div className="flex flex-wrap gap-2 lg:justify-center lg:gap-4">
         {books.map((item: any, index: number) => (
-          <div className="block" key={index}>
+          <div className="block w-[calc(50vw-35px)]" key={index}>
             <div className="min-h-full rounded-lg border border-gray-200 bg-white p-3 shadow-sm transition-transform duration-1000 hover:shadow-lg">
-              <div className="relative size-[180px]">
+              <div className="relative mx-auto flex aspect-[1/1] w-full justify-center">
                 <Image
                   alt="Sản phẩm"
                   className="rounded-md object-cover"
@@ -82,8 +82,7 @@ const BookSection = ({ categoryId, title }: BookSectionProps) => {
               </div>
 
               <div className="mt-3 flex flex-col gap-2">
-                {/* giá */}
-                <div className="flex items-center gap-x-2 text-[20px] font-[500] text-red-500">
+                <div className="flex items-center gap-x-2 text-sm font-[500] text-red-500 lg:text-[20px]">
                   <div>
                     {new Intl.NumberFormat("vi-VN").format(item?.price)}đ
                   </div>
@@ -94,21 +93,24 @@ const BookSection = ({ categoryId, title }: BookSectionProps) => {
                   </div>
                 </div>
 
-                <div
-                  className="text-sm text-gray-500"
-                  onClick={() => router.push(`/books/${item?.id}`)}
-                >
-                  {item?.authors[0]?.name}
-                </div>
+                {item?.authors[0]?.name && (
+                  <div
+                    className="text-sm text-gray-500"
+                    onClick={() => router.push(`/books/${item?.id}`)}
+                  >
+                    {item?.authors[0]?.name}
+                  </div>
+                )}
 
-                <div className="line-clamp-2 max-w-[180px] text-base font-medium text-gray-900">
+                <div className="line-clamp-2 max-w-[calc((100vw-20px)/2)] text-sm font-medium text-gray-900 lg:max-w-[180px] lg:text-base">
                   {item?.name}
                 </div>
 
-                <div className="mt-1 flex items-center justify-between text-sm text-gray-500">
-                  <div className="flex items-center gap-x-2 text-xs">
-                    <RatingStars rating={5} size={10} /> Đã bán&nbsp;
-                    {item?.total_sold}
+                <div className="mt-1 flex max-w-[calc((100vw-20px)/2)] flex-wrap items-center justify-between text-sm text-gray-500 md:max-w-full">
+                  <div className="flex flex-col gap-2 text-xs">
+                    <RatingStars rating={5} size={10} />
+
+                    <div>Đã bán&nbsp;{item?.total_sold}</div>
                   </div>
 
                   <ShoppingCart

@@ -10,7 +10,7 @@ const ProductCard = ({ item, key }: any) => {
   const router = useRouter();
 
   const handleViewDetailBook = async () => {
-    router.push(`/books/${item?.book_id?._id}`);
+    router.push(`/books/${item?.book_id?.id}`);
   };
 
   useEffect(() => {
@@ -19,7 +19,7 @@ const ProductCard = ({ item, key }: any) => {
 
   return (
     <div
-      className="flex items-center gap-3 rounded-md border border-gray-200 p-3 shadow-sm"
+      className="flex w-full items-center gap-3 rounded-md border border-gray-200 p-3 shadow-sm md:max-w-[400px] lg:max-w-none"
       onClick={handleViewDetailBook}
     >
       <Image
@@ -32,7 +32,7 @@ const ProductCard = ({ item, key }: any) => {
 
       {status}
 
-      <div className="flex flex-col gap-y-2 text-base">
+      <div className="flex flex-col gap-y-2 text-sm md:text-base">
         <div className="line-clamp-2 font-medium text-gray-900">
           {item?.book_id?.name}
         </div>

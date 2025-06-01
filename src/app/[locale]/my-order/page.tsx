@@ -87,17 +87,17 @@ const Page = () => {
 
   return (
     <div>
-      <div className="mx-[100px] mb-5 text-[18px] font-medium">
+      <div className="mx-5 mb-5 text-[18px] font-medium lg:mx-[100px]">
         Đơn hàng của tôi
       </div>
 
-      <div className="mx-[100px] rounded-md bg-white p-5">
+      <div className="mx-5 rounded-md bg-white p-5 lg:mx-[100px]">
         <Tabs
-          className="w-full"
+          className="w-full overflow-auto"
           defaultValue="all"
           onValueChange={setActiveTab}
         >
-          <TabsList className="grid w-full grid-cols-5">
+          <TabsList className="flex w-full space-x-2 overflow-x-auto">
             {tabs.map((tab) => (
               <TabsTrigger
                 className="text-sm"
@@ -116,14 +116,14 @@ const Page = () => {
                 listOrder?.map((item: any, index) => {
                   return (
                     <div
-                      className="mt-5 rounded-md border-2 p-5 px-6"
+                      className="mt-5 rounded-md border-2 p-5 px-3 md:px-6"
                       key={index}
                     >
                       <div
-                        className="flex justify-between font-medium"
+                        className="mb-3 flex flex-wrap justify-between text-sm font-medium lg:text-[16px]"
                         onClick={() => handleViewDetailOrder(item?.id)}
                       >
-                        <div className="pb-3 text-[16px]">
+                        <div className="pb-3">
                           Ngày đặt hàng:&nbsp;
                           <span>
                             {dayjs(item?.created_at).format(
@@ -140,13 +140,13 @@ const Page = () => {
                         </div>
                       </div>
 
-                      <div className="grid grid-cols-2 gap-5">
+                      <div className="flex flex-wrap gap-5 lg:grid lg:grid-cols-2">
                         {item?.books.map((item: any, index: number) => (
                           <ProductCard item={item} key={index} />
                         ))}
                       </div>
 
-                      <div className="mt-4 flex items-center justify-between border-t pt-3 text-sm">
+                      <div className="mt-4 flex flex-wrap items-center justify-between gap-3 border-t pt-3 text-sm">
                         <div>
                           Tổng đơn:&nbsp;
                           <span className="text-base font-medium text-red-500">

@@ -26,7 +26,7 @@ export const ChooseAddress = ({ setAddress, address }: any) => {
   }, [profile]);
 
   return (
-    <div className="w-[350px] rounded-md border bg-white p-4">
+    <div className="w-full rounded-md border bg-white p-4 md:w-[350px]">
       <div className="mb-1 flex items-center justify-between">
         <div className="text-gray-500">Giao tới</div>
 

@@ -9,7 +9,7 @@ export function HeaderItem({ href, label }: { href: string; label: string }) {
 
   return (
     <Link
-      className="min-w-[80px] text-muted-foreground transition-colors hover:text-foreground data-[active=true]:text-foreground"
+      className="min-w-[70px] text-center text-muted-foreground transition-colors hover:text-foreground data-[active=true]:text-foreground"
       data-active={isActive}
       href={href}
     >
@@ -30,7 +30,7 @@ export function HeaderItemMobile({
 
   return (
     <Link
-      className="hover:text-foreground data-[active=false]:text-muted-foreground"
+      className="text-sm hover:text-foreground data-[active=false]:text-muted-foreground"
       data-active={isActive}
       href={href}
     >

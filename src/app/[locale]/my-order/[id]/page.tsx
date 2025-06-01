@@ -194,7 +194,7 @@ const Page = ({ params }: DetailOrderPageProps) => {
 
   return (
     <>
-      <div className="mx-[100px] pb-3 text-center text-[20px] font-medium">
+      <div className="mx-2 pb-3 text-center text-[20px] font-medium md:mx-5 lg:mx-[100px]">
         Chi tiết đơn hàng
       </div>
 
@@ -207,9 +207,9 @@ const Page = ({ params }: DetailOrderPageProps) => {
       />
 
       <div>
-        <div className="rounded-md px-[50px] md:px-[100px]">
-          <div className="flex justify-between">
-            <div className="flex w-full flex-col gap-3 rounded-md py-5 pb-[30px] text-[15px]">
+        <div className="rounded-md px-4 md:px-[100px] lg:px-[50px]">
+          <div className="flex flex-wrap justify-between md:flex-nowrap">
+            <div className="flex w-full flex-col gap-3 rounded-md py-0 pb-3 text-[15px] md:py-5 md:pb-[30px]">
               <div>
                 <span className="font-medium">Tên người nhận: </span>
 
@@ -271,7 +271,7 @@ const Page = ({ params }: DetailOrderPageProps) => {
                 )}
             </div>
 
-            <div className="flex w-full flex-col gap-3 rounded-md p-5 pb-[30px] text-[15px]">
+            <div className="flex w-full flex-col gap-3 rounded-md p-0 pb-[30px] text-[15px] md:p-5">
               {dataOrder?.carrier?.name && (
                 <div>
                   <span className="font-medium">Vận chuyển bởi:&nbsp;</span>{" "}
@@ -319,7 +319,7 @@ const Page = ({ params }: DetailOrderPageProps) => {
           </div>
 
           <div className="flex flex-col gap-5 md:flex-row md:justify-between">
-            <div className="flex w-full justify-center overflow-auto rounded-md border bg-white p-5 pb-[30px] text-[15px] md:w-[900px]">
+            <div className="flex w-full justify-center overflow-auto rounded-md border bg-white p-5 pb-[30px] text-[15px] md:min-w-[60%]">
               <BookTable
                 books={dataOrder?.books as any}
                 isOrderCompleted={
@@ -330,7 +330,7 @@ const Page = ({ params }: DetailOrderPageProps) => {
               />
             </div>
 
-            <div className="flex w-full justify-center rounded-md pb-[30px] text-[15px] md:min-w-[400px] md:max-w-[400px]">
+            <div className="flex w-full justify-center rounded-md pb-[30px] text-[15px] md:min-w-[40%] md:max-w-[400px]">
               <OrderHistory
                 events={dataOrder?.tracking_order?.map((item: any) => {
                   return {

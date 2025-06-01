@@ -26,7 +26,7 @@ export const ChoosePaymentMethod = ({ form }: any) => {
   }, [selectedPaymentMethod, form]);
 
   return (
-    <>
+    <div className="mx-5 lg:mx-0">
       <div className="mb-4 mt-6 text-base font-semibold text-gray-800">
         Chọn hình thức thanh toán
       </div>
@@ -62,6 +62,6 @@ export const ChoosePaymentMethod = ({ form }: any) => {
           </label>
         ))}
       </div>
-    </>
+    </div>
   );
 };

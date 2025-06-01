@@ -1,5 +1,6 @@
 import { api } from "@/services/axios";
 import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
+import axios from "axios";
 
 const fetchBooks = async (params: any) => {
   const response = await api.get("/books", { params });
@@ -31,6 +32,24 @@ const getDetailBooks = async (id: string) => {
   };
 };
 
+export const getRecommendAlsoBoughtBooks = async (bookId: string) => {
+  const response = await axios.get(
+    process.env.NEXT_PUBLIC_API_RECOMMENDATION +
+      "/recommend/also-bought/" +
+      bookId,
+  );
+
+  return response;
+};
+
+export const getRecommendBooksForUser = async (userId: string) => {
+  const response = await axios.get(
+    process.env.NEXT_PUBLIC_API_RECOMMENDATION + "/recommend/home/" + userId,
+  );
+
+  return response;
+};
+
 export const useBooks = (params: any) => {
   const query = useInfiniteQuery({
     queryKey: ["books", params],
@@ -55,7 +74,7 @@ export const useDetailBook = (id: string) => {
     queryFn: () => getDetailBooks(id),
   });
 
-  const params = { categoryId: responseDetailBook?.data?.category_id[0]?.id };
+  const params = { categoryId: responseDetailBook?.data?.category_id?.id };
 
   const responseList = useQuery({
     queryKey: ["books-2", params],
@@ -63,8 +82,26 @@ export const useDetailBook = (id: string) => {
     queryFn: () => fetchBooks(params),
   });
 
+  const responseRecommendAlsoBoughtBooks = useQuery({
+    queryKey: ["books-3", id],
+    queryFn: () => getRecommendAlsoBoughtBooks(id),
+  });
+
   return {
-    listBookSameCategory: responseList?.data?.books || [],
+    listBookSameCategory: [
+      ...(responseRecommendAlsoBoughtBooks?.data?.data || []),
+      // ...(responseList?.data?.books || []),
+    ],
     detailBook: responseDetailBook?.data || {},
   };
+};
+
+export const useRecommendedBook = (userId: string) => {
+  const query = useQuery({
+    queryKey: ["recommended-books", userId],
+    queryFn: () => getRecommendBooksForUser(userId),
+    enabled: !!userId,
+  });
+
+  return query;
 };

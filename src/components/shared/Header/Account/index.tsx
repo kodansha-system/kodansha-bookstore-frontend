@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import { toast } from "react-toastify";
 
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 
 import { useTranslations } from "next-intl";
 
@@ -38,6 +38,7 @@ const Account = () => {
   const [open, setOpen] = useState(false);
   const { user, setUser, logout } = useAuthStore();
   const router = useRouter();
+  const pathname = usePathname();
 
   const handleLogin = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -69,6 +70,7 @@ const Account = () => {
       return res.data;
     },
     retry: false,
+    enabled: !pathname?.includes("/login"),
   });
 
   const t = useTranslations("Home");
@@ -136,7 +138,7 @@ const Account = () => {
         </DropdownMenu>
       ) : (
         <DialogTrigger asChild>
-          <Button onClick={() => setOpen(true)}>Đăng nhập</Button>
+          <Button onClick={() => router.push("/login")}>Đăng nhập</Button>
         </DialogTrigger>
       )}
     </Dialog>
