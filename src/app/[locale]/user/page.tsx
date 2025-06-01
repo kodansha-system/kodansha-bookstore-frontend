@@ -26,10 +26,11 @@ import { Input } from "@/components/ui/input";
 import { ChooseAddressDialog } from "../payment/components/ChooseAddressDialog";
 
 const formSchema = z.object({
-  name: z.string().min(5, "Tên khóa học phải ít nhất 5 ký tự"),
+  name: z.string(),
   image: z.any().optional(),
   phone_number: z.string().optional(),
   date_of_birth: z.any().optional(),
+  email: z.string().optional(),
 });
 
 function Profile() {
@@ -47,6 +48,7 @@ function Profile() {
       image: null,
       phone_number: "",
       date_of_birth: null,
+      email: "",
     },
   });
 
@@ -125,6 +127,7 @@ function Profile() {
 
   useEffect(() => {
     if (profile) {
+      form.setValue("email", profile.email || "");
       form.setValue("name", profile.name || "");
       form.setValue("phone_number", profile.phone_number || "");
       form.setValue("image", profile.image || null);
@@ -137,15 +140,31 @@ function Profile() {
 
   return (
     <>
-      <div className="mx-[100px] mb-5 text-[18px] font-medium">
+      <div className="mx-5 mb-5 text-[18px] font-medium lg:mx-[100px]">
         Thông tin cá nhân
       </div>
 
-      <div className="mx-[100px] flex gap-x-3">
-        <div className="w-1/2 bg-white p-5">
+      <div className="mx-5 flex flex-wrap justify-center gap-3 lg:mx-[100px]">
+        <div className="w-full bg-white p-5 md:max-w-[45%]">
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)}>
               <div className="mb-8 flex flex-col gap-8 gap-y-3">
+                <FormField
+                  control={form.control}
+                  name="email"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Email</FormLabel>
+
+                      <FormControl>
+                        <Input placeholder="Email" {...field} disabled />
+                      </FormControl>
+
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
                 <FormField
                   control={form.control}
                   name="name"
@@ -187,17 +206,24 @@ function Profile() {
 
                       <FormControl>
                         <div className="flex flex-col items-center justify-center gap-4">
-                          <input
-                            accept="image/*"
-                            onChange={(e) => {
-                              const file = e.target.files?.[0];
+                          <label className="block w-full cursor-pointer">
+                            <span className="inline-block rounded border border-blue-500 px-2 py-1 text-center text-sm text-blue-500">
+                              Chọn ảnh
+                            </span>
 
-                              if (file) {
-                                field.onChange(file);
-                              }
-                            }}
-                            type="file"
-                          />
+                            <input
+                              accept="image/*"
+                              className="hidden"
+                              onChange={(e) => {
+                                const file = e.target.files?.[0];
+
+                                if (file) {
+                                  field.onChange(file);
+                                }
+                              }}
+                              type="file"
+                            />
+                          </label>
 
                           {field.value && (
                             <Image
@@ -228,7 +254,7 @@ function Profile() {
           </Form>
         </div>
 
-        <div className="w-1/2 bg-white p-5">
+        <div className="w-full bg-white p-5 md:w-1/2">
           <div className="mb-3 text-center">
             <Button
               className="bg-blue-500 hover:bg-blue-400"

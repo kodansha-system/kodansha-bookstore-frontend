@@ -173,7 +173,7 @@ const SearchPage = () => {
   }, [searchParams]);
 
   return (
-    <div className="px-[100px]">
+    <div className="px-5 lg:px-[100px]">
       <div className="mx-auto rounded-md bg-white">
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)}>
@@ -182,7 +182,7 @@ const SearchPage = () => {
                 control={form.control}
                 name="category"
                 render={({ field }) => (
-                  <FormItem className="flex flex-row items-center gap-x-2 rounded-md pl-4 pt-4">
+                  <FormItem className="flex flex-col gap-x-2 rounded-md pl-4 pt-4 md:flex-row md:items-center">
                     <div className="text-sm text-gray-600">Danh mục:</div>
 
                     <FormControl>
@@ -202,7 +202,7 @@ const SearchPage = () => {
                           }),
                           container: (provided) => ({
                             ...provided,
-                            minWidth: 300,
+                            minWidth: 280,
                             maxWidth: 350,
                             fontSize: "14px",
                           }),
@@ -222,7 +222,7 @@ const SearchPage = () => {
                 control={form.control}
                 name="author"
                 render={({ field }) => (
-                  <FormItem className="flex flex-row items-center gap-x-2 rounded-md pl-4 pt-4">
+                  <FormItem className="flex flex-col gap-x-2 rounded-md pl-4 pt-4 md:flex-row md:items-center">
                     <div className="text-sm text-gray-600">Tác giả:</div>
 
                     <FormControl>
@@ -242,7 +242,7 @@ const SearchPage = () => {
                           }),
                           container: (provided) => ({
                             ...provided,
-                            minWidth: 300,
+                            minWidth: 280,
                             maxWidth: 350,
                             fontSize: "14px",
                           }),
@@ -262,7 +262,7 @@ const SearchPage = () => {
                 control={form.control}
                 name="sort_by"
                 render={({ field }) => (
-                  <FormItem className="flex flex-row items-center gap-x-2 rounded-md pl-4 pt-4">
+                  <FormItem className="flex flex-col gap-x-2 rounded-md pl-4 pt-4 md:flex-row md:items-center">
                     <div className="text-sm text-gray-600">Sắp xếp theo</div>
 
                     <FormControl>
@@ -287,7 +287,7 @@ const SearchPage = () => {
                           }),
                           container: (provided) => ({
                             ...provided,
-                            minWidth: 300,
+                            minWidth: 280,
                             maxWidth: 350,
                             fontSize: "14px",
                           }),
@@ -355,60 +355,62 @@ const SearchPage = () => {
           </div>
         )}
 
-        <div className="mt-5 flex grow flex-wrap justify-center gap-5">
+        <div className="mt-5 flex grow flex-wrap justify-center gap-3 md:gap-5">
           {data &&
             allBooks?.map((item: any, index: number) => (
-              <div className="block" key={index}>
+              <div
+                className="block w-[calc(50vw-35px)] md:w-[180px]"
+                key={index}
+              >
                 <div className="min-h-full rounded-lg border border-gray-200 bg-white p-3 shadow-sm transition-transform duration-1000 hover:shadow-lg">
-                  <div className="relative size-[180px]">
+                  <div className="relative mx-auto flex aspect-[1/1] w-full justify-center">
                     <Image
                       alt="Sản phẩm"
-                      className="rounded-md object-cover"
+                      className="size-[180px] rounded-md object-cover"
                       fill
-                      onClick={() => {
-                        router.push(`/books/${item?._id}`);
-                      }}
+                      onClick={() => router.push(`/books/${item?.id}`)}
                       src={item?.images[0]}
                     />
                   </div>
 
                   <div className="mt-3 flex flex-col gap-2">
-                    {/* giá */}
-                    <div className="flex items-center gap-x-2 text-[20px] font-[500] text-red-500">
+                    <div className="flex items-center gap-x-2 text-sm font-[500] text-red-500 lg:text-[20px]">
                       <div>
                         {new Intl.NumberFormat("vi-VN").format(item?.price)}đ
                       </div>
 
                       <div className="flex items-center justify-center rounded-sm bg-gray-100 p-1 text-xs font-[400] text-black">
                         -
-                        {(
-                          (item?.discount / (item?.price + item?.discount)) *
-                          100
-                        ).toFixed(0)}
+                        {((1 - item?.price / item?.origin_price) * 100).toFixed(
+                          0,
+                        )}
                         %
                       </div>
                     </div>
 
-                    <div className="text-sm text-gray-500">
-                      {item?.authors[0]?.name}
-                    </div>
+                    {item?.authors[0]?.name && (
+                      <div
+                        className="text-sm text-gray-500"
+                        onClick={() => router.push(`/books/${item?.id}`)}
+                      >
+                        {item?.authors[0]?.name}
+                      </div>
+                    )}
 
-                    <div
-                      className="line-clamp-2 max-w-[180px] text-base font-medium text-gray-900"
-                      onClick={() => router.push(`/books/${item?._id}`)}
-                    >
+                    <div className="line-clamp-2 max-w-[calc((100vw-20px)/2)] text-sm font-medium text-gray-900 md:max-w-[180px] lg:max-w-[180px] lg:text-base">
                       {item?.name}
                     </div>
 
-                    <div className="mt-1 flex items-center justify-between text-sm text-gray-500">
-                      <div className="flex items-center gap-x-2 text-xs">
-                        <RatingStars rating={5} size={10} /> Đã bán&nbsp;
-                        {item?.total_sold}
+                    <div className="mt-1 flex max-w-[calc((100vw-20px)/2)] flex-wrap items-center justify-between text-sm text-gray-500 md:max-w-full">
+                      <div className="flex flex-col gap-2 text-xs">
+                        <RatingStars rating={5} size={10} />
+
+                        <div>Đã bán&nbsp;{item?.total_sold}</div>
                       </div>
 
                       <ShoppingCart
                         className="cursor-pointer hover:scale-150 hover:text-blue-500"
-                        onClick={() => handleAddToCart(item._id)}
+                        onClick={() => handleAddToCart(item.id)}
                         size={16}
                       />
                     </div>

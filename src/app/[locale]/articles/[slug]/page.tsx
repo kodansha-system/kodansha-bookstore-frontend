@@ -29,8 +29,8 @@ const ArticleDetailPage = () => {
   const article = data?.data || {};
 
   return (
-    <div className="mx-auto max-w-[80%] space-y-6 rounded-md bg-white p-6 px-10">
-      <h1 className="text-3xl font-bold">{article.title}</h1>
+    <div className="mx-auto max-w-[90%] space-y-6 rounded-md bg-white p-6 px-10">
+      <h1 className="text-[20px] font-bold lg:text-2xl">{article.title}</h1>
 
       <div className="italic text-gray-400">
         Cập nhật vào: {new Date(article?.updated_at).toLocaleDateString()}

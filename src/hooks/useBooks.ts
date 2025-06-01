@@ -95,11 +95,19 @@ export const useDetailBook = (id: string) => {
     queryFn: () => getRecommendAlsoBoughtBooks(id),
   });
 
+  const combinedRecommendBooks = [
+    ...(responseRecommendAlsoBoughtBooks?.data?.data || []),
+    ...(responseList?.data || []),
+  ];
+
+  const listBookRecommended = Array.from(
+    new Map(combinedRecommendBooks.map((book) => [book._id, book]))
+      .values()
+      ?.filter((book) => book._id !== id),
+  );
+
   return {
-    listBookSameCategory: [
-      ...(responseRecommendAlsoBoughtBooks?.data?.data || []),
-      ...(responseList?.data || []),
-    ],
+    listBookRecommended,
     detailBook: responseDetailBook?.data || {},
   };
 };

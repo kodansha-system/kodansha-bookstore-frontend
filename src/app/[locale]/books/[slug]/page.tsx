@@ -103,7 +103,7 @@ const ProductDetailPage = ({ params }: ProductDetailPageProps) => {
   const router = useRouter();
   const [countdown, setCountdown] = useState<any>();
   const [listReview, setListReview] = useState<any[]>([]);
-  const { listBookSameCategory, detailBook } = useDetailBook(params.slug);
+  const { listBookRecommended, detailBook } = useDetailBook(params.slug);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
 
@@ -696,8 +696,8 @@ const ProductDetailPage = ({ params }: ProductDetailPageProps) => {
         <div className="sticky top-[80px] max-h-[700px] min-h-[200px] w-full rounded-lg bg-white p-4 lg:w-[300px]">
           <div className="mb-3 font-medium">Thường được mua kèm</div>
 
-          <div className="flex flex-wrap gap-2">
-            {listBookSameCategory
+          <div className="flex flex-wrap justify-center gap-2">
+            {listBookRecommended
               ?.slice(0, 6)
               ?.map((item: any, index: number) => {
                 return (
@@ -716,7 +716,7 @@ const ProductDetailPage = ({ params }: ProductDetailPageProps) => {
 
                     <div className="text-sm">
                       <div className="line-clamp-2 max-w-[300px] text-xs">
-                        {item?.bookName}
+                        {item?.name}
                       </div>
 
                       <div className="flex items-center gap-1">

@@ -69,19 +69,21 @@ const ArticlePage = () => {
 
   return (
     <div className="mx-auto max-w-[80%] rounded-md bg-white p-6">
-      <h1 className="mb-6 text-2xl font-bold">Danh sách bài viết</h1>
+      <h1 className="mb-6 text-[20px] font-bold lg:text-xl">
+        Danh sách bài viết
+      </h1>
 
-      <div className="grid grid-cols-2 gap-6">
+      <div className="grid gap-6 md:grid-cols-3">
         {data?.pages.map((page, i) =>
           page.data.map((article) => (
             <div
-              className="flex gap-4 rounded-lg border p-4 shadow transition hover:shadow-lg"
+              className="gap-4 rounded-lg border p-4 shadow transition hover:shadow-lg"
               key={article.id}
               onClick={() => router.push(`/articles/${article.id}`)}
             >
               <Image
                 alt={article.title}
-                className="h-[80px] w-[120px] rounded object-cover"
+                className="mx-auto mb-3 h-[200px] w-full rounded object-cover"
                 height={80}
                 src={article.image}
                 width={120}
@@ -89,15 +91,17 @@ const ArticlePage = () => {
 
               <div className="flex flex-col justify-between">
                 <div>
-                  <h2 className="text-lg font-semibold">{article.title}</h2>
+                  <h2 className="line-clamp-2 max-w-full text-[16px] font-semibold leading-[25px]">
+                    {article.title}
+                  </h2>
 
                   <p className="text-sm text-gray-500">
                     Người viết: {article.created_by?.name}
                   </p>
                 </div>
 
-                <p className="text-xs text-gray-400">
-                  {new Date(article.created_at).toLocaleDateString()}
+                <p className="mt-2 text-right text-xs text-gray-400">
+                  Ngày tạo: {new Date(article.created_at).toLocaleDateString()}
                 </p>
               </div>
             </div>

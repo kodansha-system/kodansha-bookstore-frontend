@@ -37,8 +37,6 @@ const BookSection = ({ categoryId, title }: BookSectionProps) => {
   };
 
   useEffect(() => {
-    console.log(categoryId, "check id");
-
     const fetchBooks = async () => {
       const res = await api.get("/books", {
         params: {
