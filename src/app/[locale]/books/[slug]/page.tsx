@@ -342,7 +342,7 @@ const ProductDetailPage = ({ params }: ProductDetailPageProps) => {
                       {detailBook?.origin_price?.toLocaleString()}đ
                     </span>
                     {/* Tính discount theo giá flash sale */}
-                    <div className="ml-2 rounded-sm bg-gray-200 px-2 py-1 text-xs text-black">
+                    <span className="ml-2 rounded-sm bg-gray-200 px-2 py-1 text-xs text-black">
                       -
                       {detailBook?.flash_sale?.price
                         ? (
@@ -353,7 +353,7 @@ const ProductDetailPage = ({ params }: ProductDetailPageProps) => {
                           ).toFixed(0)
                         : 0}
                       %
-                    </div>
+                    </span>
                   </div>
                 ) : (
                   <>
@@ -636,11 +636,12 @@ const ProductDetailPage = ({ params }: ProductDetailPageProps) => {
                   key={item.id}
                 >
                   <div>
+                    {/* Avatar + Name */}
                     <div className="flex items-center gap-x-2">
                       <Image
                         alt=""
-                        className="object-fit h-[30px] rounded-full"
-                        height={20}
+                        className="object-fit size-[30px] rounded-full"
+                        height={30}
                         src={item?.created_by?.image}
                         width={30}
                       />
@@ -648,6 +649,7 @@ const ProductDetailPage = ({ params }: ProductDetailPageProps) => {
                       {item?.created_by?.name}
                     </div>
 
+                    {/* Rating */}
                     <div className="my-2 flex items-center gap-1">
                       {[...Array(5)].map((_, i) => (
                         <Star
@@ -659,36 +661,43 @@ const ProductDetailPage = ({ params }: ProductDetailPageProps) => {
                       ))}
                     </div>
 
+                    {/* Review Image */}
                     {item?.image && (
                       <Image
                         alt=""
-                        className="object-contain"
+                        className="mt-2 object-contain"
                         height={200}
                         src={item?.image}
                         width={200}
                       />
                     )}
 
+                    {/* Review Content */}
                     <div className="mt-3">{item.content}</div>
 
+                    {/* Review Created Date */}
                     <div className="mt-3 italic text-gray-400">
                       Đã đánh giá vào:&nbsp;
-                      {new Date(item.created_at).toLocaleDateString()}
+                      {new Date(item.created_at).toLocaleDateString("vi-VN")}
                     </div>
+
+                    {/* Reply section */}
+                    {item.reply && (
+                      <div className="mt-4 rounded-md bg-gray-100 p-3">
+                        <div className="mb-1 flex items-center gap-2 text-sm font-medium text-gray-700">
+                          <span className="text-blue-600">
+                            Phản hồi từ Kodansha - {item?.reply?.staff_id?.name}
+                          </span>
+                        </div>
+
+                        <div className="text-sm text-gray-800">
+                          {item?.reply?.content}
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
               ))}
-
-              {hasMore && (
-                <div className="text-center">
-                  <Button
-                    className="w-[200px] bg-blue-500 hover:bg-blue-500"
-                    onClick={handleLoadMore}
-                  >
-                    Xem thêm
-                  </Button>
-                </div>
-              )}
             </div>
           </div>
         </ProductContent>

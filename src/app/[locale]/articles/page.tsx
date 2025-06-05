@@ -101,7 +101,8 @@ const ArticlePage = () => {
                 </div>
 
                 <p className="mt-2 text-right text-xs text-gray-400">
-                  Ngày tạo: {new Date(article.created_at).toLocaleDateString()}
+                  Ngày tạo:{" "}
+                  {new Date(article.created_at).toLocaleDateString("vi-VN")}
                 </p>
               </div>
             </div>

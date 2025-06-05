@@ -213,28 +213,29 @@ const Page = ({ params }: DetailOrderPageProps) => {
               <div>
                 <span className="font-medium">Tên người nhận: </span>
 
-                {dataOrder?.delivery_address?.customer_name}
+                {dataOrder?.delivery_address?.customer_name ||
+                  dataOrder?.user_id?.name}
               </div>
 
               <div>
                 <span className="font-medium">Số điện thoại: </span>
 
-                {dataOrder?.delivery_address?.phone_number}
+                {dataOrder?.delivery_address?.phone_number ||
+                  dataOrder?.user_id?.phone_number}
               </div>
 
-              <div>
-                <span className="font-medium">Địa chỉ: </span>
+              {dataOrder?.delivery_address?.full_address && (
+                <div>
+                  <span className="font-medium">Địa chỉ: </span>
 
-                {dataOrder?.delivery_address?.full_address}
-              </div>
+                  {dataOrder?.delivery_address?.full_address}
+                </div>
+              )}
 
               <div>
                 <span className="font-medium">Phương thức thanh toán: </span>
+
                 {PaymentMethodText[dataOrder?.payment_method as PAY_METHODS]}
-                &nbsp;
-                {`(${
-                  PaymentStatusText[dataOrder?.payment_status as PaymentStatus]
-                })`}
               </div>
 
               {paymentTimeLeft &&

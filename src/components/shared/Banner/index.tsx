@@ -57,6 +57,24 @@ const BannerSlider = () => {
     }
   }, [listArticle]);
 
+  const [slidesPerView, setSlidesPerView] = useState(2);
+
+  useEffect(() => {
+    function handleResize() {
+      if (window.innerWidth < 768) {
+        setSlidesPerView(1);
+      } else {
+        setSlidesPerView(2);
+      }
+    }
+
+    handleResize(); // gọi lần đầu
+
+    window.addEventListener("resize", handleResize);
+
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
   return (
     <div className="relative mx-auto w-[90%] py-10">
       {isSwiperReady && (
@@ -82,7 +100,7 @@ const BannerSlider = () => {
           navigation={true}
           onInit={() => setIsSwiperReady(true)}
           pagination={{ clickable: true }}
-          slidesPerView={2}
+          slidesPerView={slidesPerView}
           spaceBetween={-30}
           speed={1000}
           style={{ visibility: isSwiperReady ? "visible" : "hidden" }}
@@ -96,7 +114,7 @@ const BannerSlider = () => {
               >
                 <Image
                   alt={`Slide ${index + 1}`}
-                  className="h-[400px] w-full rounded-xl object-cover shadow-lg"
+                  className="h-[300px] w-full rounded-xl object-cover shadow-lg md:h-[400px]"
                   height={400}
                   src={article?.image}
                   width={800}

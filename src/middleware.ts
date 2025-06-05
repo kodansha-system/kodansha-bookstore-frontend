@@ -19,7 +19,7 @@ function isProtectedPath(pathname: string): boolean {
 function decodePayload(token: string): any | null {
   try {
     const [, payload] = token.split(".");
-    const json = atob(payload);
+    const json = Buffer.from(payload, "base64").toString("utf-8"); // an toàn hơn atob
 
     return JSON.parse(json);
   } catch (err) {
@@ -27,12 +27,8 @@ function decodePayload(token: string): any | null {
   }
 }
 
-export default async function middleware(req: NextRequest) {
+export default function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
-
-  if (!isProtectedPath(pathname)) {
-    return intlMiddleware(req);
-  }
 
   const token = req.cookies.get("access_token")?.value;
   const refreshToken = req.cookies.get("refresh_token")?.value;
@@ -41,15 +37,21 @@ export default async function middleware(req: NextRequest) {
 
   const isAccessTokenInvalid = !payload || !payload.exp || payload.exp < now;
 
-  if (isAccessTokenInvalid && !refreshToken) {
-    const loginUrl = new URL(`/${defaultLocale}/login`, req.url);
+  if (isProtectedPath(pathname)) {
+    if (isAccessTokenInvalid && !refreshToken) {
+      const loginUrl = new URL(`/${defaultLocale}/login`, req.url);
 
-    loginUrl.searchParams.set("reason", "unauthorized");
+      loginUrl.searchParams.set("reason", "unauthorized");
 
-    return NextResponse.redirect(loginUrl);
+      return NextResponse.redirect(loginUrl);
+    }
   }
 
-  return intlMiddleware(req);
+  const response = intlMiddleware(req); // Gọi xử lý locale
+
+  response.headers.set("x-pathname", pathname); // Đặt header để dùng trong layout
+
+  return response;
 }
 
 export const config = {

@@ -16,6 +16,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { SearchIcon, ShoppingCart } from "lucide-react";
 import { z } from "zod";
 
+import Chatbot from "@/components/Chatbot";
 import BannerSlider from "@/components/shared/Banner";
 import RatingStars from "@/components/shared/RatingStar";
 import { Button } from "@/components/ui/button";
@@ -138,6 +139,8 @@ function DashboardPage() {
       <BannerSlider />
 
       <FlashSaleSection />
+
+      <Chatbot />
 
       {listCategoriesShowOnDashboard &&
         listCategoriesShowOnDashboard?.map((item: any) => {

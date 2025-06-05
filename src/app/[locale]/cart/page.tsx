@@ -459,7 +459,7 @@ const CartPage = () => {
                   href={`/books/${item?._id}`}
                   key={index}
                 >
-                  <div className="rounded-lg border border-gray-200 bg-white p-3 shadow-sm transition-transform duration-1000 hover:shadow-lg">
+                  <div className="min-h-[340px] rounded-lg border border-gray-200 bg-white p-3 shadow-sm transition-transform duration-1000 hover:shadow-lg">
                     <div className="relative size-[180px]">
                       <Image
                         alt="Sản phẩm"

@@ -4,7 +4,7 @@ import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "react-toastify";
 
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 
 import { api } from "@/services/axios";
 import { useAuthStore } from "@/store/authStore";
@@ -33,7 +33,8 @@ const LoginPage = () => {
     resolver: zodResolver(schema),
   });
   const { user, setUser, logout } = useAuthStore();
-  const reason = new URLSearchParams(window.location.search).get("reason");
+  const searchParams = useSearchParams();
+  const reason = searchParams.get("reason");
 
   const onSubmit = async (values: FormValues) => {
     try {
@@ -64,17 +65,10 @@ const LoginPage = () => {
   }, [reason]);
 
   return (
-    <div className="relative h-auto w-full">
-      <div
-        className="absolute inset-0 bg-cover bg-center"
-        style={{ backgroundImage: "url('/library-book-bookshelf-read.jpg')" }}
-      />
-
-      <div className="absolute inset-0 bg-black bg-opacity-60"></div>
-
-      <div className="relative z-10">
-        <div className="bg-gray-50 dark:bg-gray-900">
-          <div className="mx-auto flex flex-col items-center justify-center px-6 py-8 md:h-[calc(100vh-200px)] lg:py-0">
+    <div className="relative size-full h-screen">
+      <div className="relative z-10 h-screen">
+        <div className="flex h-full items-center bg-gray-50 dark:bg-gray-900">
+          <div className="m-auto flex flex-col items-center justify-center px-6 py-8 md:h-[calc(100vh-200px)] lg:py-0">
             <a
               className="mb-6 flex items-center text-2xl font-semibold text-gray-900 dark:text-white"
               href="#"

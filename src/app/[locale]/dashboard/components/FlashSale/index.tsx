@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { toast } from "react-toastify";
 
 import Image from "next/image";
 import { useRouter } from "next/navigation";
@@ -87,18 +88,18 @@ export default function FlashSaleSection() {
   const handleAddToCart = async (bookId: number) => {
     try {
       const response = await api.post("/carts", {
-        book_id: bookId,
-        quantity: 1,
+        books: [
+          {
+            book_id: bookId,
+            quantity: 1,
+          },
+        ],
       });
 
-      if (response.status === 200) {
-        alert("Thêm vào giỏ hàng thành công!");
-      } else {
-        alert("Thêm vào giỏ hàng thất bại!");
-      }
+      toast.success("Thêm vào giỏ hàng thành công!");
     } catch (error) {
       console.error("Lỗi khi thêm vào giỏ hàng:", error);
-      alert("Đã xảy ra lỗi khi thêm vào giỏ hàng!");
+      toast.error("Đã xảy ra lỗi khi thêm vào giỏ hàng!");
     }
   };
 

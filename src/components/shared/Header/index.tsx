@@ -1,4 +1,7 @@
+"use client";
+
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 
 import { getHeaderItems } from "@/routes/protectedRoutes";
 
@@ -9,8 +12,16 @@ import LanguageSwitcher from "./LanguageSwitcher";
 import SearchForm from "./Search";
 import Sidebar from "./Sidebar";
 
-async function Header() {
-  const HEADER_ITEMS = await getHeaderItems();
+function Header() {
+  const pathname = usePathname();
+
+  const hiddenPaths = ["/vi/login", "/vi/register"];
+
+  if (hiddenPaths.includes(pathname)) {
+    return null;
+  }
+
+  const HEADER_ITEMS = getHeaderItems();
 
   return (
     <header className="sticky top-0 z-50 flex h-16 items-center gap-4 border-b bg-background px-4 md:px-10">
@@ -41,7 +52,7 @@ async function Header() {
 
           <ThemeToggle />
 
-          <LanguageSwitcher />
+          {/* <LanguageSwitcher /> */}
         </div>
       </div>
     </header>

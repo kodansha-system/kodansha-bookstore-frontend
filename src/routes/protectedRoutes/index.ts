@@ -1,11 +1,9 @@
 import { getMessages } from "next-intl/server";
 
-export async function getHeaderItems() {
-  const messages = await getMessages();
-
+export function getHeaderItems() {
   return [
-    { label: messages["dashboard"], href: "/dashboard" },
-    { label: messages["orders"], href: "/cart" },
+    { label: "Trang chủ", href: "/dashboard" },
+    { label: "Giỏ hàng", href: "/cart" },
     { label: "Bài viết", href: "/articles" },
   ];
 }

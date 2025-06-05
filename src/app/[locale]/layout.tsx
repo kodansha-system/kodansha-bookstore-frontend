@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 
 import { Inter } from "next/font/google";
-import { headers } from "next/headers";
 
 import { NextIntlClientProvider } from "next-intl";
 import { getMessages } from "next-intl/server";
@@ -30,13 +29,7 @@ export default async function RootLayout({
   children: React.ReactNode;
   params: { locale: string };
 }>) {
-  const requestHeaders = headers();
-  const pathname = requestHeaders.get("x-pathname") || "";
-
-  const isLoginPage = pathname === "/login";
   const messages = await getMessages();
-
-  if (isLoginPage) return <>{children}</>;
 
   return (
     <html lang={locale}>
