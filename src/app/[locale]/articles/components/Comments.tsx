@@ -4,6 +4,8 @@ import React, { useEffect, useState } from "react";
 
 import { api } from "@/services/axios";
 
+import { checkIsLogin } from "@/lib/utils";
+
 export const getComments = async (articleId: string) => {
   const res = await api.get(`/comments/article/${articleId}`);
 
@@ -27,6 +29,10 @@ export default function CommentSection({ articleId }: { articleId: string }) {
   const [comments, setComments] = useState<any[]>([]);
 
   const handleSubmit = async () => {
+    if (!checkIsLogin()) {
+      return;
+    }
+
     if (!input.trim()) return;
 
     const content = input.replace(`@${replyToName} `, "").trim();
@@ -62,13 +68,13 @@ export default function CommentSection({ articleId }: { articleId: string }) {
   }, []);
 
   return (
-    <div className="mx-auto mt-10 w-full max-w-[900px] px-4">
+    <div className="mx-auto mt-10 w-full max-w-[900px] rounded-md bg-white p-5">
       <h2 className="mb-6 text-2xl font-semibold text-gray-800">Bình luận</h2>
 
       <div className="flex flex-col gap-6">
         {comments.map((comment) => (
           <div
-            className="flex flex-col rounded-lg border border-gray-200 bg-gray-50 p-4 shadow-sm"
+            className="flex flex-col rounded-lg border border-gray-200 p-4 shadow-sm"
             key={comment.id}
           >
             <div className="flex items-center gap-3">

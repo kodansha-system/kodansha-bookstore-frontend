@@ -1,6 +1,6 @@
 import { Pathnames } from "next-intl/navigation";
 
-export const defaultLocale = "en";
+export const defaultLocale = "vi";
 export const locales = ["en", "vi"] as const;
 
 export const protectedPathnames = {

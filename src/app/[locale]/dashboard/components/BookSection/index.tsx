@@ -9,6 +9,8 @@ import { ShoppingCart } from "lucide-react";
 
 import RatingStars from "@/components/shared/RatingStar";
 
+import { checkIsLogin, formatNumber } from "@/lib/utils";
+
 interface BookSectionProps {
   categoryId: string;
   title: string;
@@ -19,6 +21,10 @@ const BookSection = ({ categoryId, title }: BookSectionProps) => {
   const router = useRouter();
 
   const handleAddToCart = async (id: string) => {
+    if (!checkIsLogin()) {
+      return;
+    }
+
     try {
       await api.post("/carts", {
         books: [
@@ -53,7 +59,7 @@ const BookSection = ({ categoryId, title }: BookSectionProps) => {
   }, [categoryId]);
 
   return (
-    <div className="mx-2 mb-10 bg-white p-5 lg:mx-[60px]">
+    <div className="mx-2 mb-10 rounded-lg bg-white p-5 lg:mx-[60px]">
       <div className="mb-4 flex items-center justify-between">
         <h2 className="text-xl font-semibold">{title}</h2>
 
@@ -106,9 +112,9 @@ const BookSection = ({ categoryId, title }: BookSectionProps) => {
 
                 <div className="mt-1 flex max-w-[calc((100vw-20px)/2)] flex-wrap items-center justify-between text-sm text-gray-500 md:max-w-full">
                   <div className="flex flex-col gap-2 text-xs">
-                    <RatingStars rating={5} size={10} />
+                    <RatingStars rating={item?.rating?.average} size={10} />
 
-                    <div>Đã bán&nbsp;{item?.total_sold}</div>
+                    <div>Đã bán&nbsp;{formatNumber(item?.total_sold)}</div>
                   </div>
 
                   <ShoppingCart

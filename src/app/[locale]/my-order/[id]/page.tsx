@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useState } from "react";
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -13,7 +13,6 @@ import {
   PAY_METHODS,
   PaymentMethodText,
   PaymentStatus,
-  PaymentStatusText,
 } from "@/services/constants";
 import { useAuthStore } from "@/store/authStore";
 import dayjs from "dayjs";
@@ -25,6 +24,7 @@ import { ReviewProductDialog } from "../components/Review";
 interface IOrder {
   user_id: {
     name: string;
+    phone_number: string;
   };
   shop_id: {
     address: string;

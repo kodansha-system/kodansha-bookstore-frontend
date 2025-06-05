@@ -21,7 +21,7 @@ const notifyLoginRequired = (() => {
     if (!shown) {
       toast.error("Bạn cần đăng nhập để tiếp tục");
       shown = true;
-      window.location.href = "/login";
+      // window.location.href = "/login";
       setTimeout(() => (shown = false), 3000);
     }
   };
@@ -98,8 +98,6 @@ api.interceptors.response.use(
       const authStore = useAuthStore.getState();
 
       authStore.logout();
-      Cookies.remove("access_token");
-      notifyLoginRequired();
 
       return Promise.reject(refreshError);
     } finally {

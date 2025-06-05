@@ -12,8 +12,7 @@ export default function Chatbot() {
   const [loading, setLoading] = useState(false);
   const client = new OpenAI({
     baseURL: "https://openrouter.ai/api/v1",
-    apiKey:
-      "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",
+    apiKey: process.env.NEXT_PUBLIC_CHATBOT_KEY,
     dangerouslyAllowBrowser: true,
   });
 

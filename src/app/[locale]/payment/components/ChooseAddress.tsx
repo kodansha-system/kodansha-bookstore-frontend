@@ -1,13 +1,18 @@
 import { useEffect, useState } from "react";
 
+import { useRouter } from "next/navigation";
+
 import { api } from "@/services/axios";
 import { useAuthStore } from "@/store/authStore";
+
+import { Button } from "@/components/ui/button";
 
 import { ChooseAddressFromList } from "./ChooseAddressFromList";
 
 export const ChooseAddress = ({ setAddress, address }: any) => {
   const [open, setOpen] = useState(false);
   const { user: profile } = useAuthStore();
+  const router = useRouter();
 
   const handleGetDefaultAddress = async () => {
     const res = await api.get(`/users/${profile?.id}/addresses`, {
@@ -41,13 +46,26 @@ export const ChooseAddress = ({ setAddress, address }: any) => {
         />
       </div>
 
-      <div className="text-base font-medium text-black">
-        {address?.customer_name} | {address?.phone_number}
-      </div>
+      {address && (
+        <div className="text-base font-medium text-black">
+          {address?.customer_name} | {address?.phone_number}
+        </div>
+      )}
 
       <div className="mt-1 overflow-hidden whitespace-normal break-words text-sm text-gray-400">
         {address?.full_address || address?.fullAddress}
       </div>
+
+      {!address && (
+        <Button
+          className="mx-auto"
+          onClick={() => {
+            router.push("/user");
+          }}
+        >
+          Thêm địa chỉ
+        </Button>
+      )}
     </div>
   );
 };

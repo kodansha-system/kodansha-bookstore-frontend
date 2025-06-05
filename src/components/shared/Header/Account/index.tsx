@@ -11,6 +11,7 @@ import { loginAction } from "@/app/actions/auth";
 import { api } from "@/services/axios";
 import { useAuthStore } from "@/store/authStore";
 import { useQuery } from "@tanstack/react-query";
+import { access } from "fs";
 import Cookies from "js-cookie";
 import { CircleUser } from "lucide-react";
 
@@ -70,7 +71,7 @@ const Account = () => {
       return res.data;
     },
     retry: false,
-    enabled: !pathname?.includes("/login"),
+    enabled: !!Cookies.get("access_token"),
   });
 
   const t = useTranslations("Home");
@@ -131,15 +132,24 @@ const Account = () => {
 
             <DropdownMenuSeparator />
 
+            <DropdownMenuItem onClick={() => router.push("/my-order")}>
+              Lịch sử đơn hàng
+            </DropdownMenuItem>
+
+            <DropdownMenuSeparator />
+
             <DropdownMenuItem onClick={() => logout()}>
               {t("Account.logout")}
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       ) : (
-        <DialogTrigger asChild>
-          <Button onClick={() => router.push("/login")}>Đăng nhập</Button>
-        </DialogTrigger>
+        <Button
+          className="bg-blue-500 hover:bg-blue-500"
+          onClick={() => router.push("/login")}
+        >
+          Đăng nhập
+        </Button>
       )}
     </Dialog>
   );

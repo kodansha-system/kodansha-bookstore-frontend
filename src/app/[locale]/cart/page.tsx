@@ -33,6 +33,8 @@ import { Input } from "@/components/ui/input";
 import { useRecommendedBook } from "@/hooks/useBooks";
 import { useDetailCart } from "@/hooks/useCarts";
 
+import { checkIsLogin, formatNumber } from "@/lib/utils";
+
 const formSchema = z.object({
   totalPrice: z.any(),
   cartItems: z.array(
@@ -95,8 +97,9 @@ const CartPage = () => {
         await api.patch("/carts", { books: currentData });
         refetchCart();
         toast.success("Cập nhật giỏ hàng thành công");
-      } catch (err) {
+      } catch (err: any) {
         console.error(err);
+        toast.error(err?.message || "Cập nhật không thành công");
       } finally {
         setIsSubmitting(false);
       }
@@ -185,6 +188,10 @@ const CartPage = () => {
   const dataRecommendedBooks = useRecommendedBook(user?._id || "");
 
   const handleAddToCart = async (id: string) => {
+    if (!checkIsLogin()) {
+      return;
+    }
+
     try {
       await api.post("/carts", {
         books: [
@@ -229,222 +236,252 @@ const CartPage = () => {
         Giỏ hàng
       </div>
 
-      <div className="mx-5 mb-3 flex gap-3 md:mx-[60px]">
-        <div
-          className="flex w-[140px] cursor-pointer items-center justify-center rounded-md border border-red-500 bg-white text-sm font-medium text-red-500 hover:bg-red-500 hover:text-white"
-          onClick={handleChooseAllBooks}
-        >
-          Chọn mua tất cả
+      {memoizedDataCart?.length <= 0 && (
+        <div className="flex flex-col items-center justify-center px-5 py-20 text-center text-gray-500">
+          <Image alt="cart" height={200} src="/empty-cart.png" width={200} />
+
+          <p className="text-lg font-medium text-blue-500">
+            Giỏ hàng của bạn đang trống
+          </p>
+
+          <p className="mt-1 text-sm text-gray-400">
+            Hãy thêm sản phẩm để tiếp tục mua sắm nhé!
+          </p>
         </div>
+      )}
 
-        <Button
-          className="w-[150px] border border-blue-500 bg-blue-500 text-white hover:bg-blue-500"
-          onClick={form.handleSubmit(onSubmit)}
-        >
-          Cập nhật giỏ hàng
-        </Button>
-      </div>
+      {memoizedDataCart?.length > 0 && (
+        <div className="mx-5 mb-3 flex gap-3 md:mx-[60px]">
+          <div
+            className="flex w-[140px] cursor-pointer items-center justify-center rounded-md border border-red-500 bg-white text-sm font-medium text-red-500 hover:bg-red-500 hover:text-white"
+            onClick={handleChooseAllBooks}
+          >
+            Chọn mua tất cả
+          </div>
 
-      <div className="mx-5 flex select-none flex-wrap gap-3 bg-gray-50 py-5 pt-0 md:mx-[60px]">
-        <div className="flex w-[1000px] gap-x-3 overflow-x-auto bg-gray-50 py-5 pt-0">
-          <div className="min-w-[1000px] rounded-md">
-            <Form {...form}>
-              <form autoComplete="off" onSubmit={form.handleSubmit(onSubmit)}>
-                <div className="overflow-hidden text-base">
-                  <div className="mb-3 grid grid-cols-[80px_100px_1fr_100px_150px_150px_50px] gap-3 rounded-md border bg-white p-3 text-left font-medium">
-                    <div>Chọn</div>
+          <Button
+            className="w-[150px] border border-blue-500 bg-blue-500 text-white hover:bg-blue-500"
+            onClick={form.handleSubmit(onSubmit)}
+          >
+            Cập nhật giỏ hàng
+          </Button>
+        </div>
+      )}
 
-                    <div>Ảnh</div>
+      {memoizedDataCart?.length > 0 && (
+        <div className="mx-5 flex select-none flex-wrap gap-3 bg-gray-50 py-5 pt-0 md:mx-[60px]">
+          <div className="flex w-[1000px] gap-x-3 overflow-x-auto bg-gray-50 py-5 pt-0">
+            <div className="min-w-[1000px] rounded-md">
+              <Form {...form}>
+                <form autoComplete="off" onSubmit={form.handleSubmit(onSubmit)}>
+                  <div className="overflow-hidden text-base">
+                    <div className="mb-3 grid grid-cols-[80px_100px_1fr_100px_150px_150px_50px] gap-3 rounded-md border bg-white p-3 text-left font-medium">
+                      <div>Chọn</div>
 
-                    <div>Tên</div>
+                      <div>Ảnh</div>
 
-                    <div>Đơn giá</div>
+                      <div>Tên</div>
 
-                    <div>Số lượng</div>
+                      <div>Đơn giá</div>
 
-                    <div>Thành tiền</div>
+                      <div>Số lượng</div>
 
-                    <div>Xóa</div>
-                  </div>
+                      <div>Thành tiền</div>
 
-                  <div className="flex flex-col gap-2">
-                    {fields.map((field, index) => {
-                      const watchedItem = cartItems?.[index];
+                      <div>Xóa</div>
+                    </div>
 
-                      return (
-                        <div
-                          className="grid grid-cols-[80px_100px_1fr_100px_150px_150px_50px] items-center gap-3 rounded-md border bg-white p-3"
-                          key={field.id}
-                        >
-                          <Checkbox
-                            checked={watchedItem.checked}
-                            className="data-[state=checked]:border-blue-500 data-[state=checked]:bg-blue-500"
-                            color="blue"
-                            onCheckedChange={(checked) =>
-                              handleCheckedChange(index, checked as boolean)
-                            }
-                          />
+                    <div className="flex flex-col gap-2">
+                      {fields.map((field, index) => {
+                        const watchedItem = cartItems?.[index];
 
+                        return (
                           <div
-                            onClick={() => handleViewDetailBook(watchedItem.id)}
+                            className="grid grid-cols-[80px_100px_1fr_100px_150px_150px_50px] items-center gap-3 rounded-md border bg-white p-3"
+                            key={field.id}
                           >
-                            <Image
-                              alt=""
-                              className="h-[100px] cursor-pointer rounded-md object-cover"
-                              height={40}
-                              src={field.image}
-                              width={80}
+                            <Checkbox
+                              checked={watchedItem.checked}
+                              className="data-[state=checked]:border-blue-500 data-[state=checked]:bg-blue-500"
+                              color="blue"
+                              onCheckedChange={(checked) =>
+                                handleCheckedChange(index, checked as boolean)
+                              }
                             />
-                          </div>
 
-                          <div
-                            className="cursor-pointer overflow-hidden whitespace-normal break-words"
-                            onClick={() => handleViewDetailBook(watchedItem.id)}
-                          >
-                            {field.name}
-                          </div>
+                            <div
+                              onClick={() =>
+                                handleViewDetailBook(watchedItem.id)
+                              }
+                            >
+                              <Image
+                                alt=""
+                                className="h-[100px] cursor-pointer rounded-md object-cover"
+                                height={40}
+                                src={field.image}
+                                width={80}
+                              />
+                            </div>
 
-                          <div className="font-medium text-blue-500">
-                            {field.price.toLocaleString()}
-                          </div>
+                            <div
+                              className="cursor-pointer overflow-hidden whitespace-normal break-words"
+                              onClick={() =>
+                                handleViewDetailBook(watchedItem.id)
+                              }
+                            >
+                              {field.name}
+                            </div>
 
-                          <div>
-                            <FormField
-                              control={control}
-                              name={`cartItems.${index}.quantity`}
-                              render={({ field }) => (
-                                <FormItem>
-                                  <FormControl>
-                                    <div className="flex items-center gap-1">
-                                      <div
-                                        className="cursor-pointer select-none rounded-md border border-gray-400 p-1"
-                                        onClick={() => {
-                                          form.setValue(
-                                            `cartItems.${index}.quantity`,
-                                            Math.max(
-                                              1,
-                                              Number(
-                                                form.watch(
-                                                  `cartItems.${index}.quantity`,
-                                                ),
-                                              ) - 1,
-                                            ),
-                                          );
-                                          handleQuantityBlur(index);
-                                        }}
-                                      >
-                                        <MinusIcon />
-                                      </div>
+                            <div className="font-medium text-blue-500">
+                              {field.price.toLocaleString()}
+                            </div>
 
-                                      <Input
-                                        {...field}
-                                        className="h-[33px] w-[60px] select-none border-gray-400 text-center text-[15px]"
-                                        max={10}
-                                        min={1}
-                                        onBlur={() => handleQuantityBlur(index)}
-                                        onChange={(e) => {
-                                          const value = Number(e.target.value);
+                            <div>
+                              <FormField
+                                control={control}
+                                name={`cartItems.${index}.quantity`}
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <FormControl>
+                                      <div className="flex items-center gap-1">
+                                        <div
+                                          className="cursor-pointer select-none rounded-md border border-gray-400 p-1"
+                                          onClick={() => {
+                                            form.setValue(
+                                              `cartItems.${index}.quantity`,
+                                              Math.max(
+                                                1,
+                                                Number(
+                                                  form.watch(
+                                                    `cartItems.${index}.quantity`,
+                                                  ),
+                                                ) - 1,
+                                              ),
+                                            );
+                                            handleQuantityBlur(index);
+                                          }}
+                                        >
+                                          <MinusIcon />
+                                        </div>
 
-                                          if (value <= 10) {
-                                            field.onChange(e);
+                                        <Input
+                                          {...field}
+                                          className="h-[33px] w-[60px] select-none border-gray-400 text-center text-[15px]"
+                                          max={10}
+                                          min={1}
+                                          onBlur={() =>
+                                            handleQuantityBlur(index)
                                           }
-                                        }}
-                                        type="number"
-                                      />
+                                          onChange={(e) => {
+                                            const value = Number(
+                                              e.target.value,
+                                            );
 
-                                      <div
-                                        className="cursor-pointer rounded-md border border-gray-400 p-1"
-                                        onClick={() => {
-                                          form.setValue(
-                                            `cartItems.${index}.quantity`,
-                                            Math.min(
-                                              10,
-                                              Number(
-                                                form.watch(
-                                                  `cartItems.${index}.quantity`,
-                                                ),
-                                              ) + 1,
-                                            ),
-                                          );
-                                          handleQuantityBlur(index);
-                                        }}
-                                      >
-                                        <PlusIcon />
+                                            if (value <= 10) {
+                                              field.onChange(e);
+                                            }
+                                          }}
+                                          type="number"
+                                        />
+
+                                        <div
+                                          className="cursor-pointer rounded-md border border-gray-400 p-1"
+                                          onClick={() => {
+                                            form.setValue(
+                                              `cartItems.${index}.quantity`,
+                                              Math.min(
+                                                10,
+                                                Number(
+                                                  form.watch(
+                                                    `cartItems.${index}.quantity`,
+                                                  ),
+                                                ) + 1,
+                                              ),
+                                            );
+                                            handleQuantityBlur(index);
+                                          }}
+                                        >
+                                          <PlusIcon />
+                                        </div>
                                       </div>
-                                    </div>
-                                  </FormControl>
-                                </FormItem>
-                              )}
-                            />
-                          </div>
+                                    </FormControl>
+                                  </FormItem>
+                                )}
+                              />
+                            </div>
 
-                          <div className="select-none font-medium text-blue-500">
-                            {(watchedItem?.total || 0).toLocaleString()}
-                          </div>
+                            <div className="select-none font-medium text-blue-500">
+                              {(watchedItem?.total || 0).toLocaleString()}
+                            </div>
 
-                          <div>
-                            <Trash2Icon
-                              className="cursor-pointer text-gray-400"
-                              onClick={() => remove(index)}
-                            />
+                            <div>
+                              <Trash2Icon
+                                className="cursor-pointer text-gray-400"
+                                onClick={() => remove(index)}
+                              />
+                            </div>
                           </div>
-                        </div>
-                      );
-                    })}
+                        );
+                      })}
+                    </div>
                   </div>
+                </form>
+              </Form>
+            </div>
+          </div>
+
+          <div className="text-sm text-gray-500">
+            <div className="flex w-[350px] flex-col gap-y-2 rounded-md border bg-white p-4">
+              <div className="flex justify-between">
+                <div>Tổng tiền hàng: </div>
+
+                <div className="text-black">
+                  {total?.price.toLocaleString()}đ
                 </div>
-              </form>
-            </Form>
+              </div>
+
+              <div className="flex justify-between">
+                <div>Giảm giá trực tiếp: </div>
+
+                <div className="text-green-300">
+                  {total.discount > 0
+                    ? `-${total.discount.toLocaleString()}`
+                    : 0}
+                  đ
+                </div>
+              </div>
+
+              <div className="flex justify-between">
+                <div>Mã giảm giá từ Kodansha: </div>
+
+                <div className="text-green-300">0đ</div>
+              </div>
+
+              <div className="size-px w-[320px] border border-gray-200"></div>
+
+              <div className="flex justify-between">
+                <div>Tổng tiền hàng: </div>
+
+                <div className="text-[20px] font-bold text-red-500">
+                  {(total.price - total.discount).toLocaleString()}đ
+                </div>
+              </div>
+
+              <Button
+                className="mt-5 w-full bg-red-500 hover:bg-red-400"
+                disabled={
+                  isSubmitting ||
+                  getValues("cartItems")?.filter((item) => item.checked)
+                    ?.length === 0
+                }
+                onClick={handleBuyBooks}
+              >
+                Mua hàng
+              </Button>
+            </div>
           </div>
         </div>
-
-        <div className="text-sm text-gray-500">
-          <div className="flex w-[350px] flex-col gap-y-2 rounded-md border bg-white p-4">
-            <div className="flex justify-between">
-              <div>Tổng tiền hàng: </div>
-
-              <div className="text-black">{total?.price.toLocaleString()}đ</div>
-            </div>
-
-            <div className="flex justify-between">
-              <div>Giảm giá trực tiếp: </div>
-
-              <div className="text-green-300">
-                {total.discount > 0 ? `-${total.discount.toLocaleString()}` : 0}
-                đ
-              </div>
-            </div>
-
-            <div className="flex justify-between">
-              <div>Mã giảm giá từ Kodansha: </div>
-
-              <div className="text-green-300">0đ</div>
-            </div>
-
-            <div className="size-px w-[320px] border border-gray-200"></div>
-
-            <div className="flex justify-between">
-              <div>Tổng tiền hàng: </div>
-
-              <div className="text-[20px] font-bold text-red-500">
-                {(total.price - total.discount).toLocaleString()}đ
-              </div>
-            </div>
-
-            <Button
-              className="mt-5 w-full bg-red-500 hover:bg-red-400"
-              disabled={
-                isSubmitting ||
-                getValues("cartItems")?.filter((item) => item.checked)
-                  ?.length === 0
-              }
-              onClick={handleBuyBooks}
-            >
-              Mua hàng
-            </Button>
-          </div>
-        </div>
-      </div>
+      )}
 
       <div className="mx-5 mb-5 rounded-md bg-white px-3 py-5 md:mx-[60px]">
         <div className="ml-[10px] text-[18px] font-medium">Gợi ý cho bạn</div>
@@ -496,7 +533,7 @@ const CartPage = () => {
                             size={10}
                           />{" "}
                           Đã bán&nbsp;
-                          {item?.total_sold}
+                          {formatNumber(item?.total_sold)}
                         </div>
 
                         <ShoppingCart

@@ -14,6 +14,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { SearchIcon, ShoppingCart } from "lucide-react";
 import { z } from "zod";
 
+import Chatbot from "@/components/Chatbot";
 import Loading from "@/components/shared/Loading";
 import RatingStars from "@/components/shared/RatingStar";
 import { Button } from "@/components/ui/button";
@@ -22,10 +23,13 @@ import { Form, FormControl, FormField, FormItem } from "@/components/ui/form";
 
 import { useBooks } from "@/hooks/useBooks";
 
+import { checkIsLogin, formatNumber } from "@/lib/utils";
+
 const FormSchema = z.object({
   is_cheap: z.boolean().default(false).optional(),
   is_freeship_extra: z.boolean().default(false).optional(),
   is_from_four_star: z.boolean().default(false).optional(),
+  is_flash_sale: z.boolean().default(false).optional(),
   sort_by: z.string().default("price").optional(),
   author: z.any(),
   category: z.any(),
@@ -49,6 +53,7 @@ const SearchPage = () => {
       is_freeship_extra: false,
       is_from_four_star: false,
       sort_by: undefined,
+      is_flash_sale: false,
       author: "",
       category: "",
     },
@@ -89,6 +94,7 @@ const SearchPage = () => {
         categoryId: values?.category && values?.category?.join(","),
         sortPrice: values?.sort_by,
         ratingGte: values?.is_from_four_star ? 4 : undefined,
+        is_flash_sale: values?.is_flash_sale,
       };
 
       const cleanedFilter = Object.fromEntries(
@@ -125,6 +131,10 @@ const SearchPage = () => {
   };
 
   const handleAddToCart = async (id: string) => {
+    if (!checkIsLogin()) {
+      return;
+    }
+
     try {
       await api.post("/carts", {
         books: [
@@ -174,6 +184,8 @@ const SearchPage = () => {
 
   return (
     <div className="px-5 lg:px-[100px]">
+      <Chatbot />
+
       <div className="mx-auto rounded-md bg-white">
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)}>
@@ -312,7 +324,7 @@ const SearchPage = () => {
               />
             </div>
 
-            <div className="mt-0 flex flex-wrap justify-between">
+            <div className="mt-0 flex flex-wrap">
               <div className="flex flex-wrap">
                 <FormField
                   control={form.control}
@@ -328,6 +340,27 @@ const SearchPage = () => {
 
                       <div className="space-y-1 text-sm leading-none text-gray-600">
                         Sản phẩm được đánh giá cao
+                      </div>
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              <div className="flex flex-wrap">
+                <FormField
+                  control={form.control}
+                  name="is_flash_sale"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-row items-center space-x-3 space-y-0 rounded-md p-4">
+                      <FormControl>
+                        <Checkbox
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                        />
+                      </FormControl>
+
+                      <div className="space-y-1 text-sm leading-none text-gray-600">
+                        Sản phẩm đang được flash sale
                       </div>
                     </FormItem>
                   )}
@@ -403,9 +436,9 @@ const SearchPage = () => {
 
                     <div className="mt-1 flex max-w-[calc((100vw-20px)/2)] flex-wrap items-center justify-between text-sm text-gray-500 md:max-w-full">
                       <div className="flex flex-col gap-2 text-xs">
-                        <RatingStars rating={5} size={10} />
+                        <RatingStars rating={item?.rating?.average} size={10} />
 
-                        <div>Đã bán&nbsp;{item?.total_sold}</div>
+                        <div>Đã bán&nbsp;{formatNumber(item?.total_sold)}</div>
                       </div>
 
                       <ShoppingCart

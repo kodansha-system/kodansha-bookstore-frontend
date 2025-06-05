@@ -17,6 +17,7 @@ import "swiper/css";
 import "swiper/css/navigation";
 import "swiper/css/thumbs";
 
+import Chatbot from "@/components/Chatbot";
 import MinusIcon from "@/components/icons/MinusIcon";
 import PlusIcon from "@/components/icons/PlusIcon";
 import { Button } from "@/components/ui/button";
@@ -24,8 +25,12 @@ import { Input } from "@/components/ui/input";
 
 import { useDetailBook } from "@/hooks/useBooks";
 
+import { checkIsLogin, formatNumber } from "@/lib/utils";
+
+import Description from "../components/Description";
 import { FindShopsHaveBook } from "../components/FindShopsHaveBook";
 import ProductSlider from "../components/ProductImages";
+import Questions from "../components/Questions";
 
 const ProductContainer = styled.div`
   padding: 20px 40px;
@@ -120,6 +125,10 @@ const ProductDetailPage = ({ params }: ProductDetailPageProps) => {
 
   const handleAddToCart = async (data: any) => {
     try {
+      if (!checkIsLogin()) {
+        return;
+      }
+
       await api.post("/carts", {
         books: [
           {
@@ -130,55 +139,76 @@ const ProductDetailPage = ({ params }: ProductDetailPageProps) => {
       });
 
       toast.success("Thêm vào giỏ hàng thành công!");
-    } catch (err) {
-      toast.error("Có lỗi khi thêm vào giỏ hàng!");
+    } catch (err: any) {
+      console.log(err);
+      toast.error(err?.message || "Có lỗi khi thêm vào giỏ hàng!");
       console.log(err);
     }
   };
 
-  const handleBuyBook = () => {
-    const numberOfBookWantBuy = form.getValues("quantity");
+  const handleBuyBook = async () => {
+    try {
+      if (!checkIsLogin()) {
+        return;
+      }
 
-    if (detailBook?.in_flash_sale) {
-      setBookToBuy([
-        {
-          discount: detailBook?.origin_price - detailBook?.price,
-          id: detailBook?.id,
-          image: detailBook?.images[0],
-          name: detailBook?.name,
-          price:
-            detailBook?.in_flash_sale && countdown
-              ? detailBook?.flash_sale?.price
-              : detailBook?.price,
-          quantity: 1,
-          total: detailBook?.price,
-          flash_sale_id: detailBook?.flash_sale?.flash_sale_id,
-          weight: detailBook?.weight,
-          height: detailBook?.height,
-          length: detailBook?.length,
-          width: detailBook?.width,
-        },
-      ]);
-    }
-    setBookToBuy([
-      {
-        discount: detailBook?.origin_price - detailBook?.price,
-        id: detailBook?.id,
-        image: detailBook?.images[0],
-        name: detailBook?.name,
-        price:
-          detailBook?.in_flash_sale && countdown
-            ? detailBook?.flash_sale?.price
-            : detailBook?.price,
+      const numberOfBookWantBuy = form.getValues("quantity");
+      const resCheckQuantity = await api.post("/carts/check-quantity", {
+        book_id: detailBook?.id,
         quantity: numberOfBookWantBuy,
-        total: detailBook?.price,
-        weight: detailBook?.weight,
-        height: detailBook?.height,
-        length: detailBook?.length,
-        width: detailBook?.width,
-      },
-    ]);
-    router.push("/payment");
+        is_flash_sale: detailBook?.in_flash_sale,
+        flash_sale_id: detailBook?.flash_sale?.flash_sale_id,
+      });
+
+      if (resCheckQuantity) {
+        if (detailBook?.in_flash_sale === true) {
+          setBookToBuy([
+            {
+              discount: detailBook?.origin_price - detailBook?.price,
+              id: detailBook?.id,
+              image: detailBook?.images[0],
+              name: detailBook?.name,
+              price:
+                detailBook?.in_flash_sale && countdown
+                  ? detailBook?.flash_sale?.price
+                  : detailBook?.price,
+              quantity: 1,
+              total: detailBook?.price,
+              flash_sale_id: detailBook?.flash_sale?.flash_sale_id,
+              is_flash_sale: true,
+              weight: detailBook?.weight,
+              height: detailBook?.height,
+              length: detailBook?.length,
+              width: detailBook?.width,
+            },
+          ]);
+        } else {
+          setBookToBuy([
+            {
+              discount: detailBook?.origin_price - detailBook?.price,
+              id: detailBook?.id,
+              image: detailBook?.images[0],
+              name: detailBook?.name,
+              price:
+                detailBook?.in_flash_sale && countdown
+                  ? detailBook?.flash_sale?.price
+                  : detailBook?.price,
+              quantity: numberOfBookWantBuy,
+              total: detailBook?.price,
+              weight: detailBook?.weight,
+              height: detailBook?.height,
+              length: detailBook?.length,
+              width: detailBook?.width,
+            },
+          ]);
+        }
+
+        router.push("/payment");
+      }
+    } catch (err: any) {
+      console.log(err);
+      toast.error(err?.message || "Hiện chưa thể mua ngay");
+    }
   };
 
   const getActiveFlashSale = async () => {
@@ -272,8 +302,13 @@ const ProductDetailPage = ({ params }: ProductDetailPageProps) => {
         2,
         "0",
       );
+      const days = String(Math.floor(diff / (1000 * 60 * 60 * 24))).padStart(
+        2,
+        "0",
+      );
 
       setCountdown({
+        days,
         hours,
         minutes,
         seconds,
@@ -285,6 +320,8 @@ const ProductDetailPage = ({ params }: ProductDetailPageProps) => {
 
   return (
     <ProductContainer>
+      <Chatbot />
+
       <ProductTop>
         <ProductImage>
           <ProductSlider data={detailBook} />
@@ -325,7 +362,7 @@ const ProductDetailPage = ({ params }: ProductDetailPageProps) => {
                 <span className="text-sm text-gray-500">
                   ({rating?.total_count || 0}
                   &nbsp;lượt đánh giá ) | Đã bán:&nbsp;
-                  {detailBook?.total_sold}
+                  {formatNumber(detailBook?.total_sold)}
                 </span>
               </div>
 
@@ -387,6 +424,16 @@ const ProductDetailPage = ({ params }: ProductDetailPageProps) => {
                 <div className="my-3 flex items-center gap-2">
                   <span>Giá sẽ cập nhật sau:</span>
 
+                  {countdown?.days !== "00" && (
+                    <>
+                      <div className="rounded-md bg-red-500 p-1 px-2 text-center font-bold text-white">
+                        {countdown?.days} ngày
+                      </div>
+
+                      <div className="text-xl font-bold text-gray-400">:</div>
+                    </>
+                  )}
+
                   <div className="rounded-md bg-red-500 p-1 px-2 text-center font-bold text-white">
                     {countdown?.hours}
                   </div>
@@ -416,7 +463,8 @@ const ProductDetailPage = ({ params }: ProductDetailPageProps) => {
                       onClick={() =>
                         form.setValue(
                           "quantity",
-                          Math.max(1, Number(form.watch("quantity")) - 1),
+                          // Math.max(1, Number(form.watch("quantity")) - 1),
+                          Number(form.watch("quantity")) - 1,
                         )
                       }
                     >
@@ -428,10 +476,11 @@ const ProductDetailPage = ({ params }: ProductDetailPageProps) => {
                       max={10}
                       min={1}
                       type="number"
-                      {...form.register("quantity", {
-                        min: 1,
-                        max: 10,
-                      })}
+                      // {...form.register("quantity", {
+                      //   min: 1,
+                      //   max: 10,
+                      // })}
+                      {...form.register("quantity")}
                     />
 
                     <div
@@ -439,19 +488,20 @@ const ProductDetailPage = ({ params }: ProductDetailPageProps) => {
                       onClick={() =>
                         form.setValue(
                           "quantity",
-                          Math.min(10, Number(form.watch("quantity")) + 1),
+                          Number(form.watch("quantity")) + 1,
+                          // Math.min(10, Number(form.watch("quantity")) + 1),
                         )
                       }
                     >
                       <PlusIcon />
                     </div>
                   </div>
-                  {Number(form.watch("quantity")) < 1 ||
+                  {/* {Number(form.watch("quantity")) < 1 ||
                   Number(form.watch("quantity") > 10) ? (
                     <div className="text-red-400">Số lượng không hợp lệ</div>
                   ) : (
                     ""
-                  )}
+                  )} */}
                 </div>
               ) : (
                 <div className="text-[18px]">Sản phẩm tạm hết hàng</div>
@@ -542,12 +592,7 @@ const ProductDetailPage = ({ params }: ProductDetailPageProps) => {
           <div className="rounded-lg border border-gray-200 bg-white p-5">
             <div className="mb-2 text-base font-medium">Mô tả sản phẩm</div>
 
-            <div
-              className="text-sm text-gray-900"
-              dangerouslySetInnerHTML={{
-                __html: DOMPurify.sanitize(detailBook?.description),
-              }}
-            ></div>
+            <Description html={DOMPurify.sanitize(detailBook?.description)} />
           </div>
 
           <div className="rounded-lg border border-gray-200 bg-white p-5">
@@ -676,7 +721,7 @@ const ProductDetailPage = ({ params }: ProductDetailPageProps) => {
                     <div className="mt-3">{item.content}</div>
 
                     {/* Review Created Date */}
-                    <div className="mt-3 italic text-gray-400">
+                    <div className="mt-3 text-xs italic text-gray-400">
                       Đã đánh giá vào:&nbsp;
                       {new Date(item.created_at).toLocaleDateString("vi-VN")}
                     </div>
@@ -699,6 +744,10 @@ const ProductDetailPage = ({ params }: ProductDetailPageProps) => {
                 </div>
               ))}
             </div>
+          </div>
+
+          <div className="rounded-md border border-gray-200 bg-white p-5">
+            <Questions productId={params?.slug} />
           </div>
         </ProductContent>
 

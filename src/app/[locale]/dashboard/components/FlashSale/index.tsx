@@ -11,6 +11,8 @@ import RatingStars from "@/components/shared/RatingStar";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 
+import { checkIsLogin, formatNumber } from "@/lib/utils";
+
 export default function FlashSaleSection() {
   const [flashSale, setFlashSale] = useState<any>(null);
   const [countdown, setCountdown] = useState<any>();
@@ -74,8 +76,13 @@ export default function FlashSaleSection() {
         2,
         "0",
       );
+      const days = String(Math.floor(diff / (1000 * 60 * 60 * 24))).padStart(
+        2,
+        "0",
+      );
 
       setCountdown({
+        days,
         hours,
         minutes,
         seconds,
@@ -86,6 +93,10 @@ export default function FlashSaleSection() {
   if (!flashSale) return null;
 
   const handleAddToCart = async (bookId: number) => {
+    if (!checkIsLogin()) {
+      return;
+    }
+
     try {
       const response = await api.post("/carts", {
         books: [
@@ -106,37 +117,52 @@ export default function FlashSaleSection() {
   if (!flashSale) return null;
 
   return (
-    <div className="mx-[60px] mt-3 rounded-lg bg-white p-5">
-      <div className="mb-3 flex items-center gap-x-2">
+    <div className="mx-2 mb-6 mt-3 rounded-lg bg-white p-5 lg:mx-[60px]">
+      <div className="mb-3 flex flex-wrap items-center gap-2">
         <div className="text-xl font-bold">🔥 Flash Sale</div>
 
-        <div className="rounded-md bg-red-500 p-1 px-2 text-center font-bold text-white">
-          {countdown?.hours}
-        </div>
+        <div className="flex gap-x-2">
+          {countdown?.days !== "00" && (
+            <>
+              <div className="rounded-md bg-red-500 p-1 px-2 text-center font-bold text-white">
+                {countdown?.days} ngày
+              </div>
 
-        <div className="text-xl font-bold text-gray-400">:</div>
+              <div className="text-xl font-bold text-gray-400">:</div>
+            </>
+          )}
 
-        <div className="rounded-md bg-red-500 p-1 px-2 text-center font-bold text-white">
-          {countdown?.minutes}
-        </div>
+          <div className="rounded-md bg-red-500 p-1 px-2 text-center font-bold text-white">
+            {countdown?.hours}
+          </div>
 
-        <div className="text-xl font-bold text-gray-400">:</div>
+          <div className="text-xl font-bold text-gray-400">:</div>
 
-        <div className="rounded-md bg-red-500 p-1 px-2 text-center font-bold text-white">
-          {countdown?.seconds}
+          <div className="rounded-md bg-red-500 p-1 px-2 text-center font-bold text-white">
+            {countdown?.minutes}
+          </div>
+
+          <div className="text-xl font-bold text-gray-400">:</div>
+
+          <div className="rounded-md bg-red-500 p-1 px-2 text-center font-bold text-white">
+            {countdown?.seconds}
+          </div>
         </div>
       </div>
 
-      <div className="flex grow flex-wrap justify-center gap-5">
+      <div className="flex grow flex-wrap justify-center gap-2 lg:gap-4">
         {flashSale &&
           flashSale?.books?.map((item: any, index: number) => {
             return (
-              <div className="block" key={index}>
+              <div
+                className="block w-[calc(50vw-35px)] md:w-[180px]"
+                key={index}
+              >
                 <div className="min-h-full rounded-lg border border-gray-200 bg-white p-3 shadow-sm transition-transform duration-1000 hover:shadow-lg">
-                  <div className="relative size-[180px]">
+                  <div className="relative mx-auto flex aspect-[1/1] w-full justify-center">
                     <Image
                       alt="Sản phẩm"
-                      className="rounded-md object-cover"
+                      className="size-[180px] rounded-md object-cover"
                       fill
                       onClick={() => router.push(`/books/${item?.book_id?.id}`)}
                       src={item?.book_id?.images[0]}
@@ -144,7 +170,7 @@ export default function FlashSaleSection() {
                   </div>
 
                   <div className="mt-3 flex flex-col gap-2">
-                    <div className="flex items-center gap-x-2 text-[20px] font-[500] text-red-500">
+                    <div className="flex items-center gap-x-2 text-sm font-[500] text-red-500 lg:text-[20px]">
                       <div>
                         {new Intl.NumberFormat("vi-VN").format(item?.price)}đ
                       </div>
@@ -179,21 +205,27 @@ export default function FlashSaleSection() {
                     </div>
 
                     <div
-                      className="line-clamp-2 max-w-[180px] text-base font-medium text-gray-900"
+                      className="line-clamp-2 max-w-[180px] text-sm font-medium text-gray-900 lg:text-base"
                       onClick={() => router.push(`/books/${item?.book_id?.id}`)}
                     >
                       {item?.book_id?.name}
                     </div>
 
-                    <div className="mt-1 flex items-center justify-between text-sm text-gray-500">
-                      <div className="flex items-center gap-x-2 text-xs">
-                        <RatingStars rating={5} size={10} /> Đã bán&nbsp;
-                        {item?.book_id?.total_sold}
+                    <div className="mt-1 flex max-w-[calc((100vw-20px)/2)] flex-wrap items-center justify-between text-sm text-gray-500 md:max-w-full">
+                      <div className="flex flex-col gap-2 text-xs">
+                        <RatingStars
+                          rating={item?.book_id?.rating?.average}
+                          size={10}
+                        />
+
+                        <div>
+                          Đã bán&nbsp;{formatNumber(item?.book_id?.total_sold)}
+                        </div>
                       </div>
 
                       <ShoppingCart
                         className="cursor-pointer hover:scale-150 hover:text-blue-500"
-                        onClick={() => handleAddToCart(item?.book_id?.id)}
+                        onClick={() => handleAddToCart(item.book_id?.id)}
                         size={16}
                       />
                     </div>
@@ -202,15 +234,6 @@ export default function FlashSaleSection() {
               </div>
             );
           })}
-      </div>
-
-      <div className="mt-5 text-center">
-        <Button
-          className="mx-auto mt-2 block w-[200px] rounded-md border border-red-500 bg-white p-2 text-center text-base font-medium text-red-500 transition-[1000] hover:bg-red-100"
-          onClick={() => router.push("/search")}
-        >
-          Xem thêm
-        </Button>
       </div>
     </div>
   );

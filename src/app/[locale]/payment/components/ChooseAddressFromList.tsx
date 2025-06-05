@@ -2,10 +2,13 @@
 
 import { useEffect, useState } from "react";
 
+import { useRouter } from "next/navigation";
+
 import { api } from "@/services/axios";
 import { useAuthStore } from "@/store/authStore";
 import { z } from "zod";
 
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -39,6 +42,7 @@ export const ChooseAddressFromList = ({
   const { user: profile } = useAuthStore();
   const [listAddress, setListAddress] = useState<any[]>([]);
   const [selectedAddress, setSelectedAddress] = useState<any>();
+  const router = useRouter();
 
   const handleGetListAddress = async () => {
     if (profile) {
@@ -109,7 +113,31 @@ export const ChooseAddressFromList = ({
               </div>
             );
           })}
+
+          <Button
+            className="mt-5"
+            onClick={() => {
+              router.push("/user");
+            }}
+          >
+            Thêm địa chỉ khác
+          </Button>
         </div>
+
+        {listAddress?.length === 0 && (
+          <div>
+            <div>Bạn chưa thêm địa chỉ nhận hàng</div>
+
+            <Button
+              className="mt-5"
+              onClick={() => {
+                router.push("/user");
+              }}
+            >
+              Thêm địa chỉ khác
+            </Button>
+          </div>
+        )}
       </DialogContent>
     </Dialog>
   );

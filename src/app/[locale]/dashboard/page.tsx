@@ -25,6 +25,8 @@ import { Form, FormControl, FormField, FormItem } from "@/components/ui/form";
 
 import { useBooks } from "@/hooks/useBooks";
 
+import { checkIsLogin } from "@/lib/utils";
+
 import BookSection from "./components/BookSection";
 import FlashSaleSection from "./components/FlashSale";
 
@@ -110,24 +112,6 @@ function DashboardPage() {
     );
 
     setListCategoriesShowOnDashboard(res3?.data);
-  };
-
-  const handleAddToCart = async (id: string) => {
-    try {
-      await api.post("/carts", {
-        books: [
-          {
-            book_id: id,
-            quantity: 1,
-          },
-        ],
-      });
-
-      toast.success("Thêm vào giỏ hàng thành công!");
-    } catch (err) {
-      toast.error("Có lỗi khi thêm vào giỏ hàng!");
-      console.log(err);
-    }
   };
 
   useEffect(() => {

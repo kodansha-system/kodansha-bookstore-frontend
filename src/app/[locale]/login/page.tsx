@@ -141,6 +141,13 @@ const LoginPage = () => {
                       Nhận mật khẩu mới qua email
                     </div>
                   </div>
+
+                  <div className="!mt-3 flex flex-wrap gap-x-2 text-sm font-light text-gray-500 dark:text-gray-400">
+                    Chưa có tài khoản?
+                    <div className="cursor-pointer text-blue-400 underline">
+                      Đăng ký
+                    </div>
+                  </div>
                 </form>
               </div>
             </div>
