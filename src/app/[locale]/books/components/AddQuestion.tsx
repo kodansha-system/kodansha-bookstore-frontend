@@ -4,6 +4,7 @@ import { useState } from "react";
 import { toast } from "react-toastify";
 
 import { api } from "@/services/axios";
+import { useQueryClient } from "@tanstack/react-query";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -25,6 +26,7 @@ const AddQuestion = ({ productId }: AddQuestionProps) => {
   const [open, setOpen] = useState(false);
   const [content, setContent] = useState("");
   const [loading, setLoading] = useState(false);
+  const queryClient = useQueryClient();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -50,6 +52,7 @@ const AddQuestion = ({ productId }: AddQuestionProps) => {
         toast.success("Gửi câu hỏi thành công!");
         setContent("");
         setOpen(false);
+        queryClient.refetchQueries({ queryKey: ["questions"] });
       }
     } catch (err: any) {
       toast.error(err?.message || "Có lỗi xảy ra khi gửi câu hỏi");

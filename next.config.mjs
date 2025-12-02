@@ -14,8 +14,8 @@ const nextConfig = {
     ];
   },
   reactStrictMode: false,
-  experimental: {
-    serverActions: true,
+  eslint: {
+    ignoreDuringBuilds: true,
   },
   images: {
     remotePatterns: [

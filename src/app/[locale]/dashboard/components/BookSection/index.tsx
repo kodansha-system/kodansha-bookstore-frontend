@@ -5,6 +5,7 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 
 import { api } from "@/services/axios";
+import { useQueryClient } from "@tanstack/react-query";
 import { ShoppingCart } from "lucide-react";
 
 import RatingStars from "@/components/shared/RatingStar";
@@ -19,6 +20,7 @@ interface BookSectionProps {
 const BookSection = ({ categoryId, title }: BookSectionProps) => {
   const [books, setBooks] = useState([]);
   const router = useRouter();
+  const queryClient = useQueryClient();
 
   const handleAddToCart = async (id: string) => {
     if (!checkIsLogin()) {
@@ -34,6 +36,9 @@ const BookSection = ({ categoryId, title }: BookSectionProps) => {
           },
         ],
       });
+
+      queryClient.invalidateQueries({ queryKey: ["recommended-books"] });
+      queryClient.invalidateQueries({ queryKey: ["detail-cart"] });
 
       toast.success("Thêm vào giỏ hàng thành công!");
     } catch (err) {

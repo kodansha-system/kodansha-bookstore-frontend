@@ -5,6 +5,7 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 
 import { api } from "@/services/axios";
+import { useQueryClient } from "@tanstack/react-query";
 import { ShoppingCart } from "lucide-react";
 
 import RatingStars from "@/components/shared/RatingStar";
@@ -17,6 +18,7 @@ export default function FlashSaleSection() {
   const [flashSale, setFlashSale] = useState<any>(null);
   const [countdown, setCountdown] = useState<any>();
   const router = useRouter();
+  const queryClient = useQueryClient();
 
   const getActiveFlashSale = async () => {
     try {
@@ -107,6 +109,8 @@ export default function FlashSaleSection() {
         ],
       });
 
+      queryClient.invalidateQueries({ queryKey: ["recommended-books"] });
+      queryClient.invalidateQueries({ queryKey: ["detail-cart"] });
       toast.success("Thêm vào giỏ hàng thành công!");
     } catch (error) {
       console.error("Lỗi khi thêm vào giỏ hàng:", error);

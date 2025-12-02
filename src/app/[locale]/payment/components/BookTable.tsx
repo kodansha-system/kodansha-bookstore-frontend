@@ -56,7 +56,7 @@ const BookTable = ({
                 />
               </TableCell>
 
-              <TableCell className="min-w-[200px] break-words">
+              <TableCell className="min-w-[200px] max-w-[400px] break-words">
                 <div
                   className="line-clamp-2 text-gray-900"
                   onClick={() =>

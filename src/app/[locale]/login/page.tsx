@@ -68,7 +68,7 @@ const LoginPage = () => {
     <div className="relative size-full h-screen">
       <div className="relative z-10 h-screen">
         <div className="flex h-full items-center bg-gray-50 dark:bg-gray-900">
-          <div className="m-auto flex flex-col items-center justify-center px-6 py-8 md:h-[calc(100vh-200px)] lg:py-0">
+          <div className="m-auto flex min-w-[450px] flex-col items-center justify-center px-6 py-8 md:h-[calc(100vh-200px)] lg:py-0">
             <a
               className="mb-6 flex items-center text-2xl font-semibold text-gray-900 dark:text-white"
               href="#"
@@ -144,7 +144,10 @@ const LoginPage = () => {
 
                   <div className="!mt-3 flex flex-wrap gap-x-2 text-sm font-light text-gray-500 dark:text-gray-400">
                     Chưa có tài khoản?
-                    <div className="cursor-pointer text-blue-400 underline">
+                    <div
+                      className="cursor-pointer text-blue-400 underline"
+                      onClick={() => router.push("/register")}
+                    >
                       Đăng ký
                     </div>
                   </div>

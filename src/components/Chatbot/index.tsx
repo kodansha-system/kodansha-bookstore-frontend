@@ -34,7 +34,7 @@ export default function Chatbot() {
       const response: any = await client.chat.completions.create({
         model: "openai/gpt-4o",
         messages: [{ role: "user", content: input.trim() }],
-        max_completion_tokens: 80,
+        max_completion_tokens: 300,
       });
 
       const aiMessage = response?.choices?.[0]?.message;

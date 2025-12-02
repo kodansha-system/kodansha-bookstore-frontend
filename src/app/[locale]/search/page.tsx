@@ -11,6 +11,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 
 import { api } from "@/services/axios";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useQueryClient } from "@tanstack/react-query";
 import { SearchIcon, ShoppingCart } from "lucide-react";
 import { z } from "zod";
 
@@ -66,6 +67,7 @@ const SearchPage = () => {
     limit: 20,
     keyword: keyword || undefined,
   });
+  const queryClient = useQueryClient();
 
   const {
     data,
@@ -144,7 +146,8 @@ const SearchPage = () => {
           },
         ],
       });
-
+      queryClient.invalidateQueries({ queryKey: ["recommended-books"] });
+      queryClient.invalidateQueries({ queryKey: ["detail-cart"] });
       toast.success("Thêm vào giỏ hàng thành công!");
     } catch (err) {
       toast.error("Có lỗi khi thêm vào giỏ hàng!");

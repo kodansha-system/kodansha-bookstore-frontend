@@ -10,6 +10,7 @@ import { useRouter } from "next/navigation";
 
 import { api } from "@/services/axios";
 import { useCartStore } from "@/store/cartStore";
+import { useQueryClient } from "@tanstack/react-query";
 import DOMPurify from "dompurify";
 import { Star } from "lucide-react";
 import styled from "styled-components";
@@ -111,6 +112,7 @@ const ProductDetailPage = ({ params }: ProductDetailPageProps) => {
   const { listBookRecommended, detailBook } = useDetailBook(params.slug);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
+  const queryClient = useQueryClient();
 
   const rating = useMemo(() => {
     return {
@@ -137,6 +139,9 @@ const ProductDetailPage = ({ params }: ProductDetailPageProps) => {
           },
         ],
       });
+
+      queryClient.invalidateQueries({ queryKey: ["recommended-books"] });
+      queryClient.invalidateQueries({ queryKey: ["detail-cart"] });
 
       toast.success("Thêm vào giỏ hàng thành công!");
     } catch (err: any) {
@@ -226,7 +231,7 @@ const ProductDetailPage = ({ params }: ProductDetailPageProps) => {
   const handleGetListReview = async (bookId: string, currentPage: number) => {
     try {
       const res: any = await api.get(
-        `/reviews?book_id=${bookId}&current=${currentPage}&pageSize=10`,
+        `/reviews?book_id=${bookId}&current=${currentPage}&pageSize=10&is_verified=true`,
       );
       const newReviews = res?.data?.reviews || [];
 

@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useParams, usePathname, useRouter } from "next/navigation";
+import { useParams } from "next/navigation";
 
 import { api } from "@/services/axios";
 import { useQuery } from "@tanstack/react-query";

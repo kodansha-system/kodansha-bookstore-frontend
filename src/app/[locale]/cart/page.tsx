@@ -80,6 +80,9 @@ const CartPage = () => {
     name: "cartItems",
   });
   const queryClient = useQueryClient();
+  const { user } = useAuthStore();
+
+  const dataRecommendedBooks = useRecommendedBook(user?._id || "");
 
   const cartItems = watch("cartItems");
 
@@ -96,6 +99,11 @@ const CartPage = () => {
 
         await api.patch("/carts", { books: currentData });
         refetchCart();
+
+        queryClient.invalidateQueries({ queryKey: ["recommended-books"] });
+
+        dataRecommendedBooks?.refetch();
+
         toast.success("Cập nhật giỏ hàng thành công");
       } catch (err: any) {
         console.error(err);
@@ -183,9 +191,6 @@ const CartPage = () => {
   const handleViewDetailBook = (id: string) => {
     router.push(`/books/${id}`);
   };
-  const { user } = useAuthStore();
-
-  const dataRecommendedBooks = useRecommendedBook(user?._id || "");
 
   const handleAddToCart = async (id: string) => {
     if (!checkIsLogin()) {
@@ -203,6 +208,8 @@ const CartPage = () => {
       });
 
       queryClient.invalidateQueries({ queryKey: ["detail-cart"] });
+
+      queryClient.invalidateQueries({ queryKey: ["recommended-books"] });
 
       toast.success("Thêm vào giỏ hàng thành công!");
     } catch (err) {
